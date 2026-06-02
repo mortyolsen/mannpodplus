@@ -16,7 +16,7 @@ export default function AboutScreen() {
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <Text style={styles.intro}>
-        MANNPOD+ er et rolig sted å puste, og en å snakke med når det trengs.
+        MANNPOD chat er et rolig sted å puste, og en å snakke med når det trengs.
         Men det er viktig at du vet hva appen er – og hva den ikke er.
       </Text>
 
