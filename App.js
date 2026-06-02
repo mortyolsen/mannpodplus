@@ -61,7 +61,7 @@ export default function App() {
           contentStyle: { backgroundColor: colors.background },
         }}
       >
-        <Stack.Screen name="Home" component={HomeScreen} options={{ title: "MANNPOD+" }} />
+        <Stack.Screen name="Home" component={HomeScreen} options={{ title: "MANNPOD Chat" }} />
         <Stack.Screen name="Chat" component={ChatScreen} options={{ title: "Kan vi snakke litt?" }} />
         <Stack.Screen name="CheckIn" component={CheckInScreen} options={{ title: "Daglig innsjekk" }} />
         <Stack.Screen name="Log" component={LogScreen} options={{ title: "Min logg" }} />
