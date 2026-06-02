@@ -1,0 +1,11 @@
+project_id = "MannpodPlus"
+
+[functions.chat]
+enabled = true
+import_map = "./functions/chat/deno.json"
+entrypoint = "./functions/chat/index.ts"
+
+[functions.share]
+enabled = true
+import_map = "./functions/share/deno.json"
+entrypoint = "./functions/share/index.ts"

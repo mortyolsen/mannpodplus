@@ -1,0 +1,208 @@
+// screens/ShareScreen.js
+import { useState, useCallback } from "react";
+import { useFocusEffect } from "@react-navigation/native";
+import {
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { colors, spacing } from "../theme";
+import { supabase } from "../supabaseClient";
+
+export default function ShareScreen() {
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [input, setInput] = useState("");
+  const [posting, setPosting] = useState(false);
+  const insets = useSafeAreaInsets();
+
+  useFocusEffect(
+    useCallback(() => {
+      loadPosts();
+    }, [])
+  );
+
+  async function loadPosts() {
+    const { data, error } = await supabase
+      .from("posts")
+      .select("id, content, created_at")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Load posts failed:", error.message);
+    } else if (data) {
+      setPosts(data);
+    }
+    setLoading(false);
+  }
+
+  async function submitPost() {
+    const text = input.trim();
+    if (text === "" || posting) return;
+
+    setPosting(true);
+    // Send through the "share" function, which CLEANS the text on the server.
+    const { data, error } = await supabase.functions.invoke("share", {
+      body: { content: text },
+    });
+    setPosting(false);
+
+    if (error) {
+      console.error("Post failed:", error.message);
+      Alert.alert("Noe gikk galt", "Klarte ikke å dele akkurat nå.");
+    } else {
+      setInput("");
+      if (data?.removed) {
+        Alert.alert(
+          "Litt ble fjernet",
+          "Vi tok bort det som lignet kontaktinfo (telefon, lenker, brukernavn). Det er for å holde stedet trygt for alle."
+        );
+      }
+      loadPosts();
+    }
+  }
+
+  function formatDate(iso) {
+    return new Date(iso).toLocaleDateString("nb-NO", {
+      day: "numeric",
+      month: "long",
+    });
+  }
+
+  if (loading) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="small" color={colors.textMuted} />
+      </View>
+    );
+  }
+
+  return (
+    <KeyboardAvoidingView
+      style={styles.screen}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 100}
+    >
+      <FlatList
+        contentContainerStyle={styles.list}
+        data={posts}
+        keyExtractor={(item) => item.id}
+        ListHeaderComponent={
+          <Text style={styles.heading}>
+            Ord fra andre som også bærer på noe.
+          </Text>
+        }
+        renderItem={({ item }) => (
+          <View style={styles.post}>
+            <Text style={styles.postText}>{item.content}</Text>
+            <Text style={styles.postDate}>{formatDate(item.created_at)}</Text>
+          </View>
+        )}
+        ListEmptyComponent={
+          <Text style={styles.empty}>
+            Ingen har delt noe ennå. Du kan være den første.
+          </Text>
+        }
+      />
+
+      <View
+        style={[styles.inputRow, { paddingBottom: insets.bottom + spacing.sm }]}
+      >
+        <TextInput
+          style={styles.input}
+          value={input}
+          onChangeText={setInput}
+          placeholder="Del noe, anonymt…"
+          placeholderTextColor={colors.textMuted}
+          multiline
+        />
+        <Pressable
+          onPress={submitPost}
+          disabled={posting}
+          style={({ pressed }) => [
+            styles.send,
+            (pressed || posting) && styles.sendPressed,
+          ]}
+        >
+          <Text style={styles.sendText}>Del</Text>
+        </Pressable>
+      </View>
+    </KeyboardAvoidingView>
+  );
+}
+
+const styles = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: colors.background },
+  centered: {
+    flex: 1,
+    backgroundColor: colors.background,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  list: { padding: spacing.lg, flexGrow: 1 },
+  heading: {
+    color: colors.textMuted,
+    fontSize: 15,
+    lineHeight: 22,
+    marginBottom: spacing.lg,
+  },
+  empty: {
+    color: colors.textMuted,
+    fontSize: 15,
+    textAlign: "center",
+    marginTop: spacing.xl,
+    lineHeight: 22,
+  },
+  post: {
+    backgroundColor: colors.card,
+    borderColor: colors.cardBorder,
+    borderWidth: 1,
+    borderRadius: 14,
+    padding: spacing.lg,
+    marginBottom: spacing.md,
+  },
+  postText: { color: colors.textPrimary, fontSize: 16, lineHeight: 23 },
+  postDate: {
+    color: colors.textMuted,
+    fontSize: 13,
+    marginTop: spacing.sm,
+  },
+  inputRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.md,
+    borderTopColor: colors.cardBorder,
+    borderTopWidth: 1,
+  },
+  input: {
+    flex: 1,
+    backgroundColor: colors.card,
+    borderColor: colors.cardBorder,
+    borderWidth: 1,
+    borderRadius: 14,
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.sm,
+    color: colors.textPrimary,
+    fontSize: 16,
+    maxHeight: 120,
+  },
+  send: {
+    marginLeft: spacing.sm,
+    backgroundColor: colors.accent,
+    borderRadius: 14,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+  },
+  sendPressed: { opacity: 0.8 },
+  sendText: { color: colors.background, fontWeight: "700", fontSize: 15 },
+});
