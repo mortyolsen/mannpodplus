@@ -4,6 +4,7 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -87,6 +88,15 @@ export default function ConversationsScreen({ navigation }) {
   }
 
   function confirmDelete(item) {
+    if (Platform.OS === "web") {
+      // Alert.alert with buttons doesn't work on web — use the browser's confirm.
+      const ok = window.confirm(
+        `Slette samtalen?\n\n"${item.title}" og alle meldingene i den blir borte.`
+      );
+      if (ok) deleteConversation(item.id);
+      return;
+    }
+
     Alert.alert(
       "Slette samtalen?",
       `"${item.title}" og alle meldingene i den blir borte.`,
