@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import {
   Alert,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -77,8 +78,7 @@ export default function AccountScreen() {
     }
   }
 
-  // Log out = sign out, then start a fresh anonymous session so the app
-  // still works for someone who just wants to look around.
+  // Log out = sign out, then start a fresh anonymous session.
   async function logOut() {
     setBusy(true);
     await supabase.auth.signOut();
@@ -88,6 +88,85 @@ export default function AccountScreen() {
     setPassword("");
     setBusy(false);
     Alert.alert("Logget ut", "Du er nå anonym igjen.");
+  }
+
+  // --- Delete account ---
+  // Two confirmations because this is permanent. Works on web and native.
+  function confirmDelete() {
+    if (Platform.OS === "web") {
+      // Web: use the browser's confirm dialogs.
+      const first = window.confirm(
+        "Er du helt sikker på at du vil slette kontoen din?\n\nAlt blir borte – samtaler, innsjekkinger, innlegg. Det kan ikke angres."
+      );
+      if (!first) return;
+      const second = window.confirm(
+        "Helt sikker?\n\nDette kan ikke angres."
+      );
+      if (!second) return;
+      doDeleteAccount();
+      return;
+    }
+
+    // Native: use Alert.alert with two stages.
+    Alert.alert(
+      "Slette kontoen?",
+      "Alt blir borte – samtaler, innsjekkinger, innlegg. Det kan ikke angres.",
+      [
+        { text: "Avbryt", style: "cancel" },
+        {
+          text: "Fortsett",
+          style: "destructive",
+          onPress: () =>
+            Alert.alert(
+              "Helt sikker?",
+              "Dette kan ikke angres.",
+              [
+                { text: "Avbryt", style: "cancel" },
+                {
+                  text: "Slett kontoen",
+                  style: "destructive",
+                  onPress: doDeleteAccount,
+                },
+              ]
+            ),
+        },
+      ]
+    );
+  }
+
+  async function doDeleteAccount() {
+    setBusy(true);
+    try {
+      const { error } = await supabase.functions.invoke("delete-user", {
+        body: {},
+      });
+      if (error) throw error;
+
+      // Sign out locally and create a fresh anonymous session.
+      await supabase.auth.signOut();
+      await supabase.auth.signInAnonymously();
+      await refreshUser();
+      setEmail("");
+      setPassword("");
+      setBusy(false);
+
+      if (Platform.OS === "web") {
+        window.alert("Kontoen er slettet. Ta vare på deg selv. 🌙");
+      } else {
+        Alert.alert("Kontoen er slettet", "Ta vare på deg selv. 🌙");
+      }
+    } catch (e) {
+      setBusy(false);
+      console.error("Delete account failed:", e);
+      if (Platform.OS === "web") {
+        window.alert("Klarte ikke å slette kontoen. Prøv igjen om litt.");
+      } else {
+        Alert.alert(
+          "Klarte ikke å slette kontoen",
+          "Prøv igjen om litt, eller kontakt oss."
+        );
+      }
+    }
   }
 
   // --- View for someone who is already registered & logged in ---
@@ -109,9 +188,29 @@ export default function AccountScreen() {
           ]}
         >
           <Text style={styles.buttonOutlineText}>
-            {busy ? "Logger ut…" : "Logg ut"}
+            {busy ? "Et øyeblikk…" : "Logg ut"}
           </Text>
         </Pressable>
+
+        {/* Danger zone — far below normal actions, clearly separated */}
+        <View style={styles.dangerZone}>
+          <Text style={styles.dangerTitle}>Slette kontoen</Text>
+          <Text style={styles.muted}>
+            Dette fjerner kontoen din og alt som er knyttet til den – samtaler,
+            innsjekkinger, innlegg. Det kan ikke angres.
+          </Text>
+
+          <Pressable
+            onPress={confirmDelete}
+            disabled={busy}
+            style={({ pressed }) => [
+              styles.buttonDanger,
+              (pressed || busy) && styles.buttonPressed,
+            ]}
+          >
+            <Text style={styles.buttonDangerText}>Slett kontoen min</Text>
+          </Pressable>
+        </View>
       </ScrollView>
     );
   }
@@ -238,5 +337,27 @@ const styles = StyleSheet.create({
     marginTop: spacing.xl,
   },
   buttonOutlineText: { color: colors.textPrimary, fontSize: 16, fontWeight: "600" },
+  // Danger zone for destructive actions
+  dangerZone: {
+    marginTop: spacing.xl * 2,
+    paddingTop: spacing.xl,
+    borderTopColor: colors.cardBorder,
+    borderTopWidth: 1,
+  },
+  dangerTitle: {
+    color: "#d96b6b",
+    fontSize: 16,
+    fontWeight: "700",
+    marginBottom: spacing.sm,
+  },
+  buttonDanger: {
+    borderColor: "#d96b6b",
+    borderWidth: 1,
+    borderRadius: 14,
+    paddingVertical: spacing.md,
+    alignItems: "center",
+    marginTop: spacing.lg,
+  },
+  buttonDangerText: { color: "#d96b6b", fontSize: 16, fontWeight: "600" },
   buttonPressed: { opacity: 0.8 },
 });
