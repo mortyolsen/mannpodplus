@@ -17,8 +17,12 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { colors, spacing } from "../theme";
 import { supabase } from "../supabaseClient";
 
+// Posts with this many reports or more are hidden automatically until you check.
+const HIDE_THRESHOLD = 2;
+
 export default function ShareScreen() {
   const [posts, setPosts] = useState([]);
+  const [reportedIds, setReportedIds] = useState(new Set());
   const [loading, setLoading] = useState(true);
   const [input, setInput] = useState("");
   const [posting, setPosting] = useState(false);
@@ -31,15 +35,32 @@ export default function ShareScreen() {
   );
 
   async function loadPosts() {
-    const { data, error } = await supabase
-      .from("posts")
-      .select("id, content, created_at")
-      .order("created_at", { ascending: false });
+    // Load posts (with report count) and the current user's own reports
+    // in parallel so the UI knows which posts to grey out.
+    const { data: userData } = await supabase.auth.getUser();
+    const userId = userData?.user?.id;
 
-    if (error) {
-      console.error("Load posts failed:", error.message);
-    } else if (data) {
-      setPosts(data);
+    const [postsRes, reportsRes] = await Promise.all([
+      supabase
+        .from("posts_with_report_counts")
+        .select("id, content, created_at, report_count")
+        .lt("report_count", HIDE_THRESHOLD)
+        .order("created_at", { ascending: false }),
+      userId
+        ? supabase
+            .from("reports")
+            .select("post_id")
+            .eq("reporter_id", userId)
+        : Promise.resolve({ data: [] }),
+    ]);
+
+    if (postsRes.error) {
+      console.error("Load posts failed:", postsRes.error.message);
+    } else if (postsRes.data) {
+      setPosts(postsRes.data);
+    }
+    if (reportsRes.data) {
+      setReportedIds(new Set(reportsRes.data.map((r) => r.post_id)));
     }
     setLoading(false);
   }
@@ -49,7 +70,6 @@ export default function ShareScreen() {
     if (text === "" || posting) return;
 
     setPosting(true);
-    // Send through the "share" function, which CLEANS the text on the server.
     const { data, error } = await supabase.functions.invoke("share", {
       body: { content: text },
     });
@@ -68,6 +88,61 @@ export default function ShareScreen() {
       }
       loadPosts();
     }
+  }
+
+  // --- Reporting ---
+  function confirmReport(postId) {
+    if (reportedIds.has(postId)) return; // already reported
+
+    if (Platform.OS === "web") {
+      const ok = window.confirm(
+        "Rapportér innlegget?\n\nVi ser på det og fjerner det hvis det bryter vilkårene."
+      );
+      if (!ok) return;
+      doReport(postId);
+      return;
+    }
+
+    Alert.alert(
+      "Rapportér innlegget?",
+      "Vi ser på det og fjerner det hvis det bryter vilkårene.",
+      [
+        { text: "Avbryt", style: "cancel" },
+        {
+          text: "Rapportér",
+          style: "destructive",
+          onPress: () => doReport(postId),
+        },
+      ]
+    );
+  }
+
+  async function doReport(postId) {
+    const { data: userData } = await supabase.auth.getUser();
+    const userId = userData?.user?.id;
+    if (!userId) return;
+
+    const { error } = await supabase.from("reports").insert({
+      post_id: postId,
+      reporter_id: userId,
+    });
+
+    if (error) {
+      console.error("Report failed:", error.message);
+      if (Platform.OS === "web") {
+        window.alert("Klarte ikke å rapportere akkurat nå. Prøv igjen om litt.");
+      } else {
+        Alert.alert(
+          "Noe gikk galt",
+          "Klarte ikke å rapportere akkurat nå. Prøv igjen om litt."
+        );
+      }
+      return;
+    }
+
+    // Update local state so the button greys out, then refresh from server.
+    setReportedIds((prev) => new Set(prev).add(postId));
+    loadPosts();
   }
 
   function formatDate(iso) {
@@ -100,12 +175,28 @@ export default function ShareScreen() {
             Ord fra andre som også bærer på noe.
           </Text>
         }
-        renderItem={({ item }) => (
-          <View style={styles.post}>
-            <Text style={styles.postText}>{item.content}</Text>
-            <Text style={styles.postDate}>{formatDate(item.created_at)}</Text>
-          </View>
-        )}
+        renderItem={({ item }) => {
+          const alreadyReported = reportedIds.has(item.id);
+          return (
+            <View style={styles.post}>
+              <Text style={styles.postText}>{item.content}</Text>
+              <View style={styles.postFooter}>
+                <Text style={styles.postDate}>{formatDate(item.created_at)}</Text>
+                <Pressable
+                  onPress={() => confirmReport(item.id)}
+                  disabled={alreadyReported}
+                  hitSlop={8}
+                >
+                  <Text
+                    style={alreadyReported ? styles.reportedText : styles.reportText}
+                  >
+                    {alreadyReported ? "Rapportert" : "Rapportér"}
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
+          );
+        }}
         ListEmptyComponent={
           <Text style={styles.empty}>
             Ingen har delt noe ennå. Du kan være den første.
@@ -170,11 +261,15 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   postText: { color: colors.textPrimary, fontSize: 16, lineHeight: 23 },
-  postDate: {
-    color: colors.textMuted,
-    fontSize: 13,
+  postFooter: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginTop: spacing.sm,
   },
+  postDate: { color: colors.textMuted, fontSize: 13 },
+  reportText: { color: colors.textMuted, fontSize: 13 },
+  reportedText: { color: colors.textMuted, fontSize: 13, opacity: 0.5 },
   inputRow: {
     flexDirection: "row",
     alignItems: "flex-end",
