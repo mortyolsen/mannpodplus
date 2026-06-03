@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "MANNPOD chat",
-    "slug": "MannpodPlus",
+    "name": "MANNPOD Chat",
+    "slug": "mannpod-chat",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -24,7 +24,11 @@
       "softwareKeyboardLayoutMode": "resize"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "name": "MANNPOD Chat",
+      "shortName": "MANNPOD",
+      "themeColor": "#0d0d12",
+      "backgroundColor": "#0d0d12"
     }
   }
 }
