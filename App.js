@@ -2,6 +2,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
+import { Platform } from "react-native";
 import { colors } from "./theme";
 import { supabase } from "./supabaseClient";
 import HomeScreen from "./screens/HomeScreen";
@@ -15,11 +16,34 @@ import AboutScreen from "./screens/AboutScreen";
 import ConversationsScreen from "./screens/ConversationsScreen";
 import PrivacyScreen from "./screens/PrivacyScreen";
 import TermsScreen from "./screens/TermsScreen";
+import OnboardingScreen from "./screens/OnboardingScreen";
 
 const Stack = createNativeStackNavigator();
 
+// Key we store in the browser to remember the user has seen onboarding.
+const ONBOARDING_KEY = "mannpod_onboarded_v1";
+
+// Tiny safe helpers — on web we read/write localStorage; on native it's a no-op for now.
+function readOnboardedFlag() {
+  try {
+    if (Platform.OS === "web" && typeof window !== "undefined") {
+      return window.localStorage.getItem(ONBOARDING_KEY) === "true";
+    }
+  } catch (_e) {}
+  return false;
+}
+
+function writeOnboardedFlag() {
+  try {
+    if (Platform.OS === "web" && typeof window !== "undefined") {
+      window.localStorage.setItem(ONBOARDING_KEY, "true");
+    }
+  } catch (_e) {}
+}
+
 export default function App() {
   const [ready, setReady] = useState(false);
+  const [needsOnboarding, setNeedsOnboarding] = useState(false);
 
   useEffect(() => {
     async function signInQuietly() {
@@ -44,13 +68,27 @@ export default function App() {
       } catch (e) {
         console.error("STARTUP CRASH:", e.message);
       }
+
+      // Check if the user has seen onboarding before.
+      const onboarded = readOnboardedFlag();
+      setNeedsOnboarding(!onboarded);
+
       setReady(true);
     }
     signInQuietly();
   }, []);
 
+  function finishOnboarding() {
+    writeOnboardedFlag();
+    setNeedsOnboarding(false);
+  }
+
   if (!ready) {
     return <LoadingScreen />;
+  }
+
+  if (needsOnboarding) {
+    return <OnboardingScreen onDone={finishOnboarding} />;
   }
 
   return (
