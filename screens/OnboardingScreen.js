@@ -23,7 +23,7 @@ const STEPS = [
   {
     title: "Slik bruker du den",
     body:
-      "Du er anonym fra start. Vil du beholde samtalene dine på tvers av telefon og PC, kan du opprette en konto under «Min konto».\n\nDet er ingen riktig måte å bruke appen på. Skriv når du har noe på hjertet. La det ligge når du ikke trenger det.",
+      "Du er anonym fra start. Det betyr at samtalene dine forsvinner når du går ut av appen, og Hvermansen husker deg ikke neste gang.\n\nVil du at Hvermansen skal huske samtalene dine – og at du kan fortsette dem på en annen enhet – kan du opprette en gratis konto under «Min konto».\n\nDet er ingen riktig måte å bruke appen på. Skriv når du har noe på hjertet. La det ligge når du ikke trenger det.",
   },
 ];
 
