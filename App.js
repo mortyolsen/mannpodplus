@@ -13,6 +13,8 @@ import ShareScreen from "./screens/ShareScreen";
 import LoadingScreen from "./screens/LoadingScreen";
 import AboutScreen from "./screens/AboutScreen";
 import ConversationsScreen from "./screens/ConversationsScreen";
+import PrivacyScreen from "./screens/PrivacyScreen";
+import TermsScreen from "./screens/TermsScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -72,11 +74,20 @@ export default function App() {
           component={ConversationsScreen}
           options={{ title: "Mine samtaler" }}
         />
-        
         <Stack.Screen
           name="About"
           component={AboutScreen}
           options={{ title: "Viktig å vite" }}
+        />
+        <Stack.Screen
+          name="Privacy"
+          component={PrivacyScreen}
+          options={{ title: "Personvern" }}
+        />
+        <Stack.Screen
+          name="Terms"
+          component={TermsScreen}
+          options={{ title: "Vilkår" }}
         />
       </Stack.Navigator>
       <StatusBar style="light" />

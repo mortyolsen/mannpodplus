@@ -5,10 +5,11 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  View,
 } from "react-native";
 import { colors, spacing } from "../theme";
 
-export default function AboutScreen() {
+export default function AboutScreen({ navigation }) {
   function call(number) {
     Linking.openURL(`tel:${number}`);
   }
@@ -16,7 +17,7 @@ export default function AboutScreen() {
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <Text style={styles.intro}>
-        MANNPOD chat er et rolig sted å puste, og en å snakke med når det trengs.
+        MANNPOD Chat er et rolig sted å puste, og en å snakke med når det trengs.
         Men det er viktig at du vet hva appen er – og hva den ikke er.
       </Text>
 
@@ -56,6 +57,35 @@ export default function AboutScreen() {
       <Text style={[styles.body, { marginTop: spacing.xl }]}>
         Du fortjener ekte hjelp når du trenger det. Det er styrke å be om den.
       </Text>
+
+      {/* --- Personvern og vilkår --- */}
+      <View style={styles.legalSection}>
+        <Text style={styles.legalHeading}>Det formelle</Text>
+        <Pressable
+          style={styles.legalRow}
+          onPress={() => navigation.navigate("Privacy")}
+        >
+          <Text style={styles.legalLink}>Personvernerklæring</Text>
+          <Text style={styles.legalSub}>
+            Hvordan vi tar vare på opplysningene dine.
+          </Text>
+        </Pressable>
+
+        <Pressable
+          style={styles.legalRow}
+          onPress={() => navigation.navigate("Terms")}
+        >
+          <Text style={styles.legalLink}>Vilkår for bruk</Text>
+          <Text style={styles.legalSub}>
+            Det vi forventer av deg, og det du kan forvente av oss.
+          </Text>
+        </Pressable>
+
+        <Text style={styles.legalFootnote}>
+          MANNPOD Chat drives av foreningen Menn for mental helse
+          (org.nr. 932 323 656).
+        </Text>
+      </View>
     </ScrollView>
   );
 }
@@ -99,5 +129,37 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     fontSize: 14,
     lineHeight: 20,
+  },
+  legalSection: {
+    marginTop: spacing.xl * 2,
+    paddingTop: spacing.xl,
+    borderTopColor: colors.cardBorder,
+    borderTopWidth: 1,
+  },
+  legalHeading: {
+    color: colors.textPrimary,
+    fontSize: 18,
+    fontWeight: "700",
+    marginBottom: spacing.md,
+  },
+  legalRow: {
+    paddingVertical: spacing.md,
+  },
+  legalLink: {
+    color: colors.accent,
+    fontSize: 16,
+    fontWeight: "600",
+    marginBottom: 4,
+  },
+  legalSub: {
+    color: colors.textMuted,
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  legalFootnote: {
+    color: colors.textMuted,
+    fontSize: 13,
+    lineHeight: 19,
+    marginTop: spacing.lg,
   },
 });
