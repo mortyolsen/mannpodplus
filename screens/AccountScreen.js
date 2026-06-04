@@ -47,11 +47,38 @@ export default function AccountScreen({ navigation }) {
     setBusy(false);
     if (error) {
       console.error("Create account failed:", error.message);
-      Alert.alert("Noe gikk galt", error.message);
+
+      // Translate common Supabase errors into friendly Norwegian.
+      let friendly = error.message;
+      const msg = error.message.toLowerCase();
+      if (msg.includes("rate limit") || msg.includes("too many")) {
+        friendly =
+          "Vi har sendt for mange e-poster på kort tid. Prøv igjen om en times tid.";
+      } else if (msg.includes("already") || msg.includes("registered")) {
+        friendly =
+          "Denne e-posten er allerede i bruk. Prøv å logge inn i stedet.";
+      } else if (msg.includes("password")) {
+        friendly = "Passordet må være minst 6 tegn.";
+      }
+
+      if (Platform.OS === "web") {
+        window.alert("Noe gikk galt\n\n" + friendly);
+      } else {
+        Alert.alert("Noe gikk galt", friendly);
+      }
     } else {
-      setAccount(data.user);
       setPassword("");
-      Alert.alert("Konto opprettet", "Nå kan du logge inn med e-posten din senere.");
+      const successMsg =
+        "Vi har sendt en bekreftelseslenke til " +
+        cleanEmail +
+        ".\n\nKlikk på lenken i e-posten for å fullføre opprettelsen. Sjekk gjerne søppelpost hvis du ikke ser den i innboksen.\n\nEtter at e-posten er bekreftet, kan du logge inn her.";
+
+      if (Platform.OS === "web") {
+        window.alert("Sjekk e-posten din\n\n" + successMsg);
+      } else {
+        Alert.alert("Sjekk e-posten din", successMsg);
+      }
+      // Don't set account here — wait until they actually confirm and log in.
     }
   }
 
@@ -70,11 +97,33 @@ export default function AccountScreen({ navigation }) {
     setBusy(false);
     if (error) {
       console.error("Login failed:", error.message);
-      Alert.alert("Kunne ikke logge inn", "Sjekk e-post og passord.");
+
+      let friendly = "Sjekk e-post og passord.";
+      const msg = error.message.toLowerCase();
+      if (msg.includes("email not confirmed") || msg.includes("not confirmed")) {
+        friendly =
+          "E-posten din er ikke bekreftet ennå. Sjekk innboksen og klikk på bekreftelseslenken vi sendte deg.";
+      } else if (msg.includes("invalid login")) {
+        friendly =
+          "E-post eller passord stemmer ikke. Hvis du nettopp opprettet konto, må du først bekrefte e-posten din.";
+      } else if (msg.includes("rate limit") || msg.includes("too many")) {
+        friendly =
+          "For mange innloggingsforsøk. Vent noen minutter og prøv igjen.";
+      }
+
+      if (Platform.OS === "web") {
+        window.alert("Kunne ikke logge inn\n\n" + friendly);
+      } else {
+        Alert.alert("Kunne ikke logge inn", friendly);
+      }
     } else {
       setAccount(data.user);
       setPassword("");
-      Alert.alert("Logget inn", "Velkommen tilbake. Alt ditt er her igjen.");
+      if (Platform.OS === "web") {
+        window.alert("Logget inn\n\nVelkommen tilbake. Alt ditt er her igjen.");
+      } else {
+        Alert.alert("Logget inn", "Velkommen tilbake. Alt ditt er her igjen.");
+      }
     }
   }
 
