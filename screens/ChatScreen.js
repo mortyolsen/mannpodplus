@@ -15,6 +15,21 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { colors, spacing } from "../theme";
 import { supabase } from "../supabaseClient";
 
+// A small set of warm openings. Picked at random when a new conversation starts.
+const GREETINGS = [
+  "Hei. Godt at du er her. Hva tenker du på akkurat nå?",
+  "Hei. Hvordan har du det i dag?",
+  "Hei. Det er rolig her. Hva har du på hjertet?",
+  "Hei. Tar deg som du kommer. Hva vil du snakke om?",
+  "Hei. Bare skriv når du er klar. Jeg er her.",
+  "Hei. Hva slags dag har du hatt?",
+  "Hei. Hvordan står det til?",
+];
+
+function pickGreeting() {
+  return GREETINGS[Math.floor(Math.random() * GREETINGS.length)];
+}
+
 export default function ChatScreen({ route, navigation }) {
   // Which conversation are we in? Comes from ConversationsScreen.
   const conversationId = route?.params?.conversationId ?? null;
@@ -25,6 +40,8 @@ export default function ChatScreen({ route, navigation }) {
   const [thinking, setThinking] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isRegistered, setIsRegistered] = useState(false);
+  // Greeting is shown in the UI but not part of API history.
+  const [greeting, setGreeting] = useState(null);
   const listRef = useRef(null);
   const insets = useSafeAreaInsets();
 
@@ -35,6 +52,7 @@ export default function ChatScreen({ route, navigation }) {
       setIsRegistered(registered);
 
       // Load saved history only for this conversation, only for registered users.
+      let loadedMessages = [];
       if (registered && conversationId && !isNew) {
         const { data, error } = await supabase
           .from("chat_messages")
@@ -44,10 +62,16 @@ export default function ChatScreen({ route, navigation }) {
         if (error) {
           console.error("Load history failed:", error.message);
         } else if (data) {
+          loadedMessages = data;
           setMessages(data);
         }
       }
-      // For new conversations or anonymous users: start with an empty chat.
+
+      // Show a greeting if the conversation is empty (new conv or anon user).
+      if (loadedMessages.length === 0) {
+        setGreeting(pickGreeting());
+      }
+
       setLoading(false);
     }
     init();
@@ -127,6 +151,11 @@ export default function ChatScreen({ route, navigation }) {
     );
   }
 
+  // Combine the greeting (if any) with real messages for display purposes only.
+  const displayMessages = greeting
+    ? [{ role: "assistant", content: greeting, isGreeting: true }, ...messages]
+    : messages;
+
   return (
     <KeyboardAvoidingView
       style={styles.screen}
@@ -136,7 +165,7 @@ export default function ChatScreen({ route, navigation }) {
       <FlatList
         ref={listRef}
         contentContainerStyle={styles.list}
-        data={messages}
+        data={displayMessages}
         keyExtractor={(_, index) => String(index)}
         onContentSizeChange={() =>
           listRef.current?.scrollToEnd({ animated: true })
@@ -158,9 +187,6 @@ export default function ChatScreen({ route, navigation }) {
               du at Hvermansen skal huske, kan du lage en konto under «Min konto».
             </Text>
           ) : null
-        }
-        ListEmptyComponent={
-          <Text style={styles.empty}>Skriv noe når du er klar. Jeg er her.</Text>
         }
       />
 
@@ -207,13 +233,6 @@ const styles = StyleSheet.create({
     lineHeight: 21,
     marginBottom: spacing.lg,
     fontStyle: "italic",
-  },
-  empty: {
-    color: colors.textMuted,
-    fontSize: 15,
-    textAlign: "center",
-    marginTop: spacing.xl,
-    lineHeight: 22,
   },
   bubble: {
     maxWidth: "85%",
