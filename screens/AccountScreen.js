@@ -13,7 +13,7 @@ import {
 import { colors, spacing } from "../theme";
 import { supabase } from "../supabaseClient";
 
-export default function AccountScreen() {
+export default function AccountScreen({ navigation }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -94,7 +94,6 @@ export default function AccountScreen() {
   // Two confirmations because this is permanent. Works on web and native.
   function confirmDelete() {
     if (Platform.OS === "web") {
-      // Web: use the browser's confirm dialogs.
       const first = window.confirm(
         "Er du helt sikker på at du vil slette kontoen din?\n\nAlt blir borte – samtaler, innsjekkinger, innlegg. Det kan ikke angres."
       );
@@ -107,7 +106,6 @@ export default function AccountScreen() {
       return;
     }
 
-    // Native: use Alert.alert with two stages.
     Alert.alert(
       "Slette kontoen?",
       "Alt blir borte – samtaler, innsjekkinger, innlegg. Det kan ikke angres.",
@@ -142,7 +140,6 @@ export default function AccountScreen() {
       });
       if (error) throw error;
 
-      // Sign out locally and create a fresh anonymous session.
       await supabase.auth.signOut();
       await supabase.auth.signInAnonymously();
       await refreshUser();
@@ -169,6 +166,26 @@ export default function AccountScreen() {
     }
   }
 
+  // Small block with links to Privacy and Terms — used in both views.
+  function LegalLinks() {
+    return (
+      <View style={styles.legalSection}>
+        <Pressable
+          style={styles.legalRow}
+          onPress={() => navigation.navigate("Privacy")}
+        >
+          <Text style={styles.legalLink}>Personvern</Text>
+        </Pressable>
+        <Pressable
+          style={styles.legalRow}
+          onPress={() => navigation.navigate("Terms")}
+        >
+          <Text style={styles.legalLink}>Vilkår for bruk</Text>
+        </Pressable>
+      </View>
+    );
+  }
+
   // --- View for someone who is already registered & logged in ---
   if (isRegistered) {
     return (
@@ -191,6 +208,8 @@ export default function AccountScreen() {
             {busy ? "Et øyeblikk…" : "Logg ut"}
           </Text>
         </Pressable>
+
+        <LegalLinks />
 
         {/* Danger zone — far below normal actions, clearly separated */}
         <View style={styles.dangerZone}>
@@ -283,6 +302,8 @@ export default function AccountScreen() {
             : "Logg inn"}
         </Text>
       </Pressable>
+
+      <LegalLinks />
     </ScrollView>
   );
 }
@@ -337,6 +358,21 @@ const styles = StyleSheet.create({
     marginTop: spacing.xl,
   },
   buttonOutlineText: { color: colors.textPrimary, fontSize: 16, fontWeight: "600" },
+  // Subtle links to Privacy and Terms
+  legalSection: {
+    marginTop: spacing.xl,
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: spacing.xl,
+  },
+  legalRow: {
+    paddingVertical: spacing.sm,
+  },
+  legalLink: {
+    color: colors.textMuted,
+    fontSize: 14,
+    textDecorationLine: "underline",
+  },
   // Danger zone for destructive actions
   dangerZone: {
     marginTop: spacing.xl * 2,
