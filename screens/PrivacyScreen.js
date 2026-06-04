@@ -56,17 +56,36 @@ export default function PrivacyScreen() {
         fungerende.
       </Text>
 
-      <Text style={styles.heading}>Hvor det lagres</Text>
+      <Text style={styles.heading}>Databehandlere vi bruker</Text>
       <Text style={styles.body}>
-        All data lagres hos Supabase i EU (Frankfurt, Tyskland). Data forlater
-        ikke EØS. Samtalene dine sendes til Anthropic (USA) for at Hvermansen
-        skal kunne svare deg. Anthropic lagrer ikke samtalene.
+        For å levere tjenesten benytter vi følgende databehandlere:
+      </Text>
+      <Text style={styles.body}>
+        • <Text style={styles.bold}>Supabase</Text> (EU/Frankfurt): Lagrer
+        kontoer, samtaler, innsjekkinger og delte innlegg. Data lagres innenfor
+        EØS.
+        {"\n\n"}
+        • <Text style={styles.bold}>Anthropic</Text> (USA): Tar imot meldingene
+        dine for at Hvermansen skal kunne svare. Vi har konfigurert tjenesten
+        slik at innhold ikke brukes til å trene modeller. Anthropic kan likevel
+        oppbevare data i kort tid for sikkerhets- og misbrukskontroll. Se
+        Anthropics personvernerklæring for detaljer.
+        {"\n\n"}
+        • <Text style={styles.bold}>Vercel</Text> (EU/global): Leverer selve
+        appen til nettleseren din. Behandler tekniske data som IP-adresse for
+        å levere innholdet.
+        {"\n\n"}
+        Overføring til USA skjer på grunnlag av EUs standardkontraktbestemmelser
+        og EU-US Data Privacy Framework.
       </Text>
 
       <Text style={styles.heading}>Hvor lenge vi lagrer</Text>
       <Text style={styles.body}>
-        Data lagres så lenge kontoen din eksisterer. Når du sletter kontoen,
-        slettes alt umiddelbart og permanent.
+        Vi lagrer dine data så lenge kontoen din eksisterer. Når du sletter
+        kontoen, fjernes data fra våre aktive systemer uten ugrunnet opphold.
+        Enkelte opplysninger kan forbli i automatiske sikkerhetskopier i en
+        begrenset periode (vanligvis inntil 30 dager) før de slettes
+        automatisk. Vi henter ikke disse dataene tilbake.
       </Text>
 
       <Text style={styles.heading}>Dine rettigheter</Text>
@@ -94,18 +113,28 @@ export default function PrivacyScreen() {
         <Text style={styles.link}>datatilsynet.no</Text>.
       </Text>
 
-      <Text style={styles.heading}>Hva vi ikke gjør</Text>
+      <Text style={styles.heading}>Vi sporer deg ikke</Text>
       <Text style={styles.body}>
-        Vi selger ikke data. Vi deler ikke data med annonsører eller
-        tredjeparter (utover Supabase og Anthropic som vi trenger for at appen
-        skal fungere). Vi sporer deg ikke på tvers av andre nettsteder.
+        Vi bruker ikke analyseverktøy, sporingsverktøy eller annonsetjenester.
+        Vi selger ikke data. Vi deler ikke data med tredjeparter utover
+        databehandlerne nevnt over. Skulle vi senere ta i bruk et verktøy som
+        krasjrapportering eller analyse, vil vi oppdatere denne erklæringen
+        først.
       </Text>
 
       <Text style={styles.heading}>Sikkerhet</Text>
       <Text style={styles.body}>
-        Vi bruker etablerte tjenester (Supabase, Vercel) med kryptert
-        overføring (HTTPS) og kryptert lagring. Passord lagres aldri i
-        klartekst, kun som irreversible krypteringssummer.
+        Vi bruker etablerte tjenester med kryptert overføring (HTTPS) og
+        kryptert lagring. Passord lagres aldri i klartekst, kun som irreversible
+        krypteringssummer. Ingen tjeneste kan likevel garantere fullstendig
+        sikkerhet, og du oppfordres til å bruke et unikt passord.
+      </Text>
+
+      <Text style={styles.heading}>Aldersgrense</Text>
+      <Text style={styles.body}>
+        MANNPOD Chat er for personer over 16 år. Vi samler ikke bevisst inn
+        data fra barn under 16. Hvis du oppdager at et barn har opprettet
+        konto, ber vi om at du gir oss beskjed slik at vi kan slette kontoen.
       </Text>
 
       <Text style={styles.heading}>Endringer</Text>

@@ -10,7 +10,7 @@ export default function TermsScreen() {
 
       <Text style={styles.intro}>
         Ved å bruke MANNPOD Chat aksepterer du disse vilkårene. Les dem
-        gjerne nøye.
+        gjerne nøye – de handler om hva appen er, og om sikkerheten din.
       </Text>
 
       <Text style={styles.heading}>1. Hvem som driver appen</Text>
@@ -29,22 +29,57 @@ export default function TermsScreen() {
 
       <Text style={styles.heading}>3. Dette er ikke helsehjelp</Text>
       <Text style={styles.body}>
-        Hvermansen er ikke terapeut, lege eller psykolog. Appen erstatter
-        ikke profesjonell hjelp. Samtalene er ment som en pust i hverdagen,
-        ikke som behandling.
-        {"\n\n"}
-        <Text style={styles.bold}>I akutt fare:</Text> Ring 113 (medisinsk
-        nødtelefon). Trenger du noen å snakke med? Ring Mental Helse på 116
-        123 eller Kirkens SOS på 22 40 00 40.
+        Hvermansen er en kunstig samtalepartner. Den er{" "}
+        <Text style={styles.bold}>ikke</Text> terapeut, lege eller psykolog.
+        Appen erstatter ikke profesjonell hjelp, diagnose eller behandling.
+        Samtalene er ment som en pust i hverdagen, ikke som behandling av
+        psykiske lidelser.
       </Text>
 
-      <Text style={styles.heading}>4. Aldersgrense</Text>
+      <Text style={styles.heading}>4. Appen er ikke for kriser</Text>
+      <Text style={styles.body}>
+        MANNPOD Chat er <Text style={styles.bold}>ikke egnet</Text> for å
+        håndtere akutte kriser eller nødsituasjoner. Dersom du vurderer å
+        skade deg selv eller andre, eller er i en akutt livssituasjon, må du
+        kontakte nødetater eller profesjonelle hjelpetjenester{" "}
+        <Text style={styles.bold}>umiddelbart</Text>.
+        {"\n\n"}
+        <Text style={styles.bold}>Ring 113</Text> ved akutt fare for liv og
+        helse.
+        {"\n"}
+        <Text style={styles.bold}>Ring 116 123</Text> for Mental Helse, hele
+        døgnet.
+        {"\n"}
+        <Text style={styles.bold}>Ring 22 40 00 40</Text> for Kirkens SOS.
+        {"\n\n"}
+        Hvermansen kan be deg om å kontakte disse tjenestene hvis han er
+        bekymret. Det er fordi du fortjener ekte hjelp i ekte kriser.
+      </Text>
+
+      <Text style={styles.heading}>5. Begrensninger ved AI-samtaler</Text>
+      <Text style={styles.body}>
+        Hvermansen er en språkmodell. Det betyr:
+      </Text>
+      <Text style={styles.body}>
+        • Svarene kan inneholde feil eller misforståelser.
+        {"\n\n"}
+        • Hvermansen kan ikke vurdere din helsesituasjon eller gi medisinske
+        råd.
+        {"\n\n"}
+        • Hvermansen «husker» bare det dere har snakket om i denne samtalen
+        og dine siste innsjekkinger – ikke hele livet ditt.
+        {"\n\n"}
+        Du bør bruke egen vurdering, og søke profesjonell hjelp når du
+        trenger det.
+      </Text>
+
+      <Text style={styles.heading}>6. Aldersgrense</Text>
       <Text style={styles.body}>
         Du må være minst 16 år for å bruke MANNPOD Chat. Er du under 18, bør
         en forelder eller verge vite at du bruker appen.
       </Text>
 
-      <Text style={styles.heading}>5. Slik skal du bruke appen</Text>
+      <Text style={styles.heading}>7. Slik skal du bruke appen</Text>
       <Text style={styles.body}>
         Du skal:
       </Text>
@@ -57,7 +92,7 @@ export default function TermsScreen() {
         innhold som identifiserer noen.
       </Text>
 
-      <Text style={styles.heading}>6. Dette er ikke tillatt</Text>
+      <Text style={styles.heading}>8. Dette er ikke tillatt</Text>
       <Text style={styles.body}>
         Du skal ikke bruke appen til å:
       </Text>
@@ -76,42 +111,64 @@ export default function TermsScreen() {
         • Forsøke å hacke, omgå sikkerhet eller misbruke appen teknisk.
       </Text>
 
-      <Text style={styles.heading}>7. Innhold du deler</Text>
+      <Text style={styles.heading}>9. Innhold du deler</Text>
       <Text style={styles.body}>
         Du eier det du deler. Når du deler et innlegg i «Les hva andre
         deler», gir du oss tillatelse til å vise det anonymt til andre
-        brukere. Vi forbeholder oss retten til å slette innhold som bryter
-        disse vilkårene, uten varsel.
+        brukere. Vi forbeholder oss retten til å fjerne, redigere eller
+        forsinke publisering av innhold som kan være skadelig, ulovlig eller
+        i strid med formålet til tjenesten, uten varsel.
       </Text>
 
-      <Text style={styles.heading}>8. Rapportering og moderering</Text>
+      <Text style={styles.heading}>10. Rapportering og moderering</Text>
       <Text style={styles.body}>
-        Brukere kan rapportere innlegg som bryter vilkårene. Vi går gjennom
-        rapporter så raskt vi kan og sletter innhold som ikke hører hjemme.
+        Brukere kan rapportere innlegg som bryter vilkårene. Vi gjennomgår
+        rapporter manuelt så raskt vi kan, men kan ikke garantere
+        responstid. Moderering skjer av frivillige i foreningen, og MANNPOD
+        Chat tilbyr ingen 24/7-overvåking av delings-rommet.
+        {"\n\n"}
+        Hvis du ser innhold som krever umiddelbar handling (trusler, akutt
+        fare), kontakt politiet på 02800 i tillegg til å rapportere i
+        appen.
       </Text>
 
-      <Text style={styles.heading}>9. Sletting og oppsigelse</Text>
+      <Text style={styles.heading}>11. Sletting og oppsigelse</Text>
       <Text style={styles.body}>
         Du kan slette kontoen din når du vil, fra «Min konto»-skjermen. Vi
         kan også stenge en konto hvis vilkårene brytes alvorlig eller
         gjentatt.
       </Text>
 
-      <Text style={styles.heading}>10. Ansvarsbegrensning</Text>
+      <Text style={styles.heading}>12. Ansvarsbegrensning</Text>
       <Text style={styles.body}>
         MANNPOD Chat tilbys «som det er». Vi kan ikke garantere at appen
-        alltid er tilgjengelig eller fri for feil. Foreningen er ikke
-        ansvarlig for beslutninger du tar basert på samtaler i appen. Bruk
-        sunn fornuft, og søk profesjonell hjelp når du trenger det.
+        alltid er tilgjengelig, fri for feil eller at innholdet i samtaler
+        med Hvermansen er korrekt.
+        {"\n\n"}
+        Foreningen er ikke ansvarlig for beslutninger du tar basert på
+        samtaler i appen, eller for innhold andre brukere deler. Bruk sunn
+        fornuft, og søk profesjonell hjelp når du trenger det.
+        {"\n\n"}
+        Så langt loven tillater, fraskriver foreningen seg ansvar for
+        indirekte tap, følgeskader eller skader knyttet til bruk av eller
+        manglende tilgang til tjenesten.
       </Text>
 
-      <Text style={styles.heading}>11. Endringer i vilkårene</Text>
+      <Text style={styles.heading}>13. Personvern</Text>
+      <Text style={styles.body}>
+        Hvordan vi behandler dine data er beskrevet i
+        personvernerklæringen, tilgjengelig fra «Min konto» og «Viktig å
+        vite».
+      </Text>
+
+      <Text style={styles.heading}>14. Endringer i vilkårene</Text>
       <Text style={styles.body}>
         Vilkårene kan endres over tid. Datoen øverst viser når de sist ble
-        oppdatert. Vesentlige endringer varsles i appen.
+        oppdatert. Vesentlige endringer varsles i appen. Fortsatt bruk etter
+        slik varsling regnes som aksept av de nye vilkårene.
       </Text>
 
-      <Text style={styles.heading}>12. Norsk lov</Text>
+      <Text style={styles.heading}>15. Norsk lov</Text>
       <Text style={styles.body}>
         Disse vilkårene følger norsk lov. Eventuelle tvister behandles av
         norske domstoler.
