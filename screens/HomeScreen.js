@@ -9,6 +9,7 @@ const C = {
   bg: '#FAF7F2', warm: '#F5EFE6', white: '#FFFFFF',
   dark: '#1C1714', primary: '#C17B4E',
   mid: '#6B5B52', light: '#A8998E', border: '#EDE5DA',
+  darkAlt: '#2C2420',
 };
 
 export default function HomeScreen({ navigation }) {
@@ -63,7 +64,7 @@ export default function HomeScreen({ navigation }) {
       style={styles.screen}
       contentContainerStyle={styles.content}
     >
-      {/* Hvermansen — samme vekt som fellesskap */}
+      {/* Hvermansen */}
       <TouchableOpacity
         style={styles.hvermansen}
         onPress={() => navigation.navigate('Conversations')}
@@ -71,15 +72,19 @@ export default function HomeScreen({ navigation }) {
       >
         <View style={styles.cardLeft}>
           <Text style={styles.hverLabel}>Alltid tilgjengelig</Text>
-          <Text style={styles.hverTitle}>Chat med{'\n'}Hvermansen</Text>
+          <Text style={styles.hverTitle}>Skriv med{'\n'}Hvermansen</Text>
           <Text style={styles.hverSub}>Hvermansen lytter alltid</Text>
+          <View style={styles.privacyBadge}>
+            <Text style={styles.privacyDot}>🔒</Text>
+            <Text style={styles.privacyText}>Meldingene dine er helt private</Text>
+          </View>
         </View>
         <View style={styles.hverArrow}>
           <Text style={styles.hverArrowText}>→</Text>
         </View>
       </TouchableOpacity>
 
-      {/* Fellesskap — like høy som Hvermansen */}
+      {/* Fellesskap — mørk bakgrunn som Hvermansen */}
       <TouchableOpacity
         style={styles.fellesskap}
         onPress={() => navigation.navigate('Fellesskap')}
@@ -96,7 +101,6 @@ export default function HomeScreen({ navigation }) {
           </View>
         </View>
 
-        {/* Tråd-preview */}
         {loadingThreads ? (
           <ActivityIndicator color={C.primary} style={{ marginTop: 16 }} />
         ) : threads.length > 0 ? (
@@ -145,11 +149,7 @@ export default function HomeScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: C.bg },
-  content: {
-    padding: 16,
-    paddingBottom: 32,
-    gap: 12,
-  },
+  content: { padding: 16, paddingBottom: 32, gap: 12 },
   accountPill: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
     backgroundColor: C.warm, borderRadius: 20,
@@ -171,7 +171,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    minHeight: 120,
   },
   cardLeft: { flex: 1, marginRight: 12 },
   hverLabel: {
@@ -182,7 +181,15 @@ const styles = StyleSheet.create({
     fontSize: 22, fontWeight: '800', color: C.bg,
     letterSpacing: -0.5, lineHeight: 26, marginBottom: 6,
   },
-  hverSub: { fontSize: 13, color: C.light },
+  hverSub: { fontSize: 13, color: C.light, marginBottom: 12 },
+  privacyBadge: {
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    backgroundColor: 'rgba(255,255,255,0.07)',
+    borderRadius: 8, paddingVertical: 5, paddingHorizontal: 8,
+    alignSelf: 'flex-start',
+  },
+  privacyDot: { fontSize: 11 },
+  privacyText: { fontSize: 11, color: '#A8998E', fontWeight: '500' },
   hverArrow: {
     width: 44, height: 44, borderRadius: 22,
     backgroundColor: C.primary,
@@ -191,12 +198,10 @@ const styles = StyleSheet.create({
   },
   hverArrowText: { color: C.white, fontSize: 20, fontWeight: '700' },
 
-  // Fellesskap
+  // Fellesskap — mørk som Hvermansen
   fellesskap: {
-    backgroundColor: C.white,
+    backgroundColor: C.darkAlt,
     borderRadius: 20, padding: 22,
-    shadowColor: C.dark, shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06, shadowRadius: 12, elevation: 2,
   },
   felleskapsTop: {
     flexDirection: 'row',
@@ -205,29 +210,29 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   cardLabel: {
-    fontSize: 11, color: C.light, fontWeight: '600',
+    fontSize: 11, color: C.primary, fontWeight: '600',
     textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 6,
   },
   cardTitle: {
-    fontSize: 22, fontWeight: '800', color: C.dark,
+    fontSize: 22, fontWeight: '800', color: C.bg,
     letterSpacing: -0.5, marginBottom: 6,
   },
-  cardSub: { fontSize: 13, color: C.mid },
+  cardSub: { fontSize: 13, color: C.light },
   cardArrow: {
     width: 44, height: 44, borderRadius: 22,
-    backgroundColor: C.warm,
+    backgroundColor: 'rgba(255,255,255,0.1)',
     justifyContent: 'center', alignItems: 'center',
     flexShrink: 0,
   },
-  cardArrowText: { color: C.dark, fontSize: 20, fontWeight: '700' },
+  cardArrowText: { color: C.bg, fontSize: 20, fontWeight: '700' },
 
   // Thread preview
   previewList: {
     marginTop: 14,
-    borderTopWidth: 1, borderTopColor: C.border,
+    borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.08)',
   },
   previewItem: { paddingVertical: 10 },
-  previewItemBorder: { borderBottomWidth: 1, borderBottomColor: C.border },
+  previewItemBorder: { borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' },
   previewMeta: {
     flexDirection: 'row', alignItems: 'center',
     gap: 6, marginBottom: 3,
@@ -236,12 +241,12 @@ const styles = StyleSheet.create({
     width: 5, height: 5, borderRadius: 3,
     backgroundColor: C.primary,
   },
-  previewAuthor: { fontSize: 12, fontWeight: '700', color: C.mid },
-  previewTime: { fontSize: 11, color: C.light, marginLeft: 'auto' },
-  previewText: { fontSize: 13, color: C.dark, lineHeight: 19 },
+  previewAuthor: { fontSize: 12, fontWeight: '700', color: C.light },
+  previewTime: { fontSize: 11, color: '#6B5B52', marginLeft: 'auto' },
+  previewText: { fontSize: 13, color: '#D4C4B8', lineHeight: 19 },
   emptyPreview: {
     marginTop: 14, paddingTop: 14,
-    borderTopWidth: 1, borderTopColor: C.border,
+    borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.08)',
   },
   emptyPreviewText: { fontSize: 13, color: C.light, fontStyle: 'italic' },
 
