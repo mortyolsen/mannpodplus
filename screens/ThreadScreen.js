@@ -56,19 +56,16 @@ export default function ThreadScreen({ route, navigation }) {
   }
 
   async function postReply() {
-    if (!replyText.trim()) return;
-    if (!isAnonymous && !username) {
-      navigation.navigate('Username', { returnTo: 'Thread', thread });
-      return;
-    }
+    if (!replyText.trim() || !user) return;
     setPosting(true);
+
     const { error } = await supabase
       .from('replies')
       .insert({
         thread_id: thread.id,
         user_id: user.id,
         content: replyText.trim(),
-        is_anonymous: isAnonymous,
+        is_anonymous: isAnonymous || !username,
       });
 
     if (error) {
@@ -112,7 +109,15 @@ export default function ThreadScreen({ route, navigation }) {
     return `${days} dager siden`;
   }
 
-  const threadAuthor = thread.is_anonymous ? 'Anonym' : (thread.profiles?.username || 'Anonym');
+  function getAnonSubText() {
+    if (!username) return 'Sett brukernavn i Min konto';
+    if (isAnonymous) return 'Ingen ser hvem du er';
+    return `Svarer som ${username}`;
+  }
+
+  const threadAuthor = thread.is_anonymous
+    ? 'Anonym'
+    : (thread.profiles?.username || 'Anonym');
 
   const renderReply = ({ item }) => {
     const isPending = item.status === 'pending';
@@ -169,7 +174,6 @@ export default function ThreadScreen({ route, navigation }) {
         renderItem={renderReply}
         ListHeaderComponent={
           <>
-            {/* Original tråd */}
             <View style={styles.threadCard}>
               <View style={styles.authorRow}>
                 <View style={[styles.avatar, threadAuthor === 'Anonym' && styles.avatarAnon]}>
@@ -198,13 +202,16 @@ export default function ThreadScreen({ route, navigation }) {
         ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
       />
 
-      {/* Svar-input */}
       <View style={styles.inputArea}>
         <View style={styles.anonToggle}>
-          <Text style={styles.anonLabel}>Anonym</Text>
+          <View>
+            <Text style={styles.anonLabel}>Anonym</Text>
+            <Text style={styles.anonSub}>{getAnonSubText()}</Text>
+          </View>
           <Switch
-            value={isAnonymous}
-            onValueChange={setIsAnonymous}
+            value={isAnonymous || !username}
+            onValueChange={username ? setIsAnonymous : null}
+            disabled={!username}
             trackColor={{ true: C.primary }}
           />
         </View>
@@ -251,10 +258,11 @@ const styles = StyleSheet.create({
   authorName: { fontSize: 13, fontWeight: '700', color: C.dark },
   timeText: { fontSize: 11, color: C.light },
   threadContent: { fontSize: 15, color: '#3D3028', lineHeight: 23 },
-  repliesLabel: { fontSize: 12, color: C.light, fontWeight: '600', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 },
-  replyCard: {
-    backgroundColor: C.warm, borderRadius: 14, padding: 14,
+  repliesLabel: {
+    fontSize: 12, color: C.light, fontWeight: '600',
+    marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5,
   },
+  replyCard: { backgroundColor: C.warm, borderRadius: 14, padding: 14 },
   replyHeader: {
     flexDirection: 'row', justifyContent: 'space-between',
     alignItems: 'center', marginBottom: 8,
@@ -268,10 +276,11 @@ const styles = StyleSheet.create({
     padding: 12, paddingBottom: Platform.OS === 'ios' ? 28 : 12,
   },
   anonToggle: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end',
-    gap: 8, marginBottom: 8,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    marginBottom: 10,
   },
   anonLabel: { fontSize: 12, color: C.mid, fontWeight: '600' },
+  anonSub: { fontSize: 11, color: C.light, marginTop: 1 },
   inputRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 10 },
   textInput: {
     flex: 1, backgroundColor: C.warm, borderRadius: 14,

@@ -58,18 +58,14 @@ export default function FellesskapScreen({ navigation }) {
 
   async function postThread() {
     if (!newContent.trim()) return;
-    if (!isAnonymous && !username) {
-      setShowNewThread(false);
-      navigation.navigate('Username', { returnTo: 'Fellesskap' });
-      return;
-    }
     setPosting(true);
+
     const { error } = await supabase
       .from('threads')
       .insert({
         user_id: user.id,
         content: newContent.trim(),
-        is_anonymous: isAnonymous,
+        is_anonymous: isAnonymous || !username,
       });
 
     if (error) {
@@ -113,6 +109,12 @@ export default function FellesskapScreen({ navigation }) {
     const days = Math.floor(hours / 24);
     if (days === 1) return 'I går';
     return `${days} dager siden`;
+  }
+
+  function getAnonSubText() {
+    if (!username) return 'Sett brukernavn i Min konto for å poste med navn';
+    if (isAnonymous) return 'Ingen ser hvem du er';
+    return `Vises som ${username}`;
   }
 
   const renderThread = ({ item }) => {
@@ -239,16 +241,26 @@ export default function FellesskapScreen({ navigation }) {
           />
 
           <View style={styles.anonRow}>
-            <View>
+            <View style={{ flex: 1, marginRight: 12 }}>
               <Text style={styles.anonLabel}>Post anonymt</Text>
-              <Text style={styles.anonSub}>Ingen ser hvem du er</Text>
+              <Text style={styles.anonSub}>{getAnonSubText()}</Text>
             </View>
             <Switch
-              value={isAnonymous}
-              onValueChange={setIsAnonymous}
+              value={isAnonymous || !username}
+              onValueChange={username ? setIsAnonymous : null}
+              disabled={!username}
               trackColor={{ true: C.primary }}
             />
           </View>
+
+          {!username && (
+            <TouchableOpacity
+              style={styles.usernameHint}
+              onPress={() => { setShowNewThread(false); navigation.navigate('Account'); }}
+            >
+              <Text style={styles.usernameHintText}>Gå til Min konto for å sette brukernavn →</Text>
+            </TouchableOpacity>
+          )}
 
           <Text style={styles.charCount}>{newContent.length}/1000</Text>
         </View>
@@ -314,5 +326,7 @@ const styles = StyleSheet.create({
   },
   anonLabel: { fontSize: 14, fontWeight: '600', color: C.dark },
   anonSub: { fontSize: 12, color: C.light, marginTop: 2 },
+  usernameHint: { marginTop: 10, padding: 4 },
+  usernameHintText: { fontSize: 13, color: C.primary, fontWeight: '500' },
   charCount: { fontSize: 11, color: C.light, marginTop: 12, textAlign: 'right' },
 });
