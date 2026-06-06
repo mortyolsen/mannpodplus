@@ -21,6 +21,8 @@ export default function AccountScreen({ navigation }) {
   const [username, setUsername] = useState("");
   const [savedUsername, setSavedUsername] = useState(null);
   const [savingUsername, setSavingUsername] = useState(false);
+  const [editingUsername, setEditingUsername] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
 
   async function refreshUser() {
     const { data } = await supabase.auth.getUser();
@@ -60,7 +62,9 @@ export default function AccountScreen({ navigation }) {
       Alert.alert('Noe gikk galt', 'Prøv igjen.');
     } else {
       setSavedUsername(trimmed);
-      Alert.alert('Lagret', `Brukernavnet ditt er nå «${trimmed}».`);
+      setEditingUsername(false);
+      setJustSaved(true);
+      setTimeout(() => setJustSaved(false), 3000);
     }
     setSavingUsername(false);
   }
@@ -224,45 +228,85 @@ export default function AccountScreen({ navigation }) {
     );
   }
 
+  // --- Innlogget visning ---
   if (isRegistered) {
     return (
       <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
         <Text style={styles.intro}>Du er logget inn.</Text>
         <Text style={styles.muted}>{account.email}</Text>
 
-        {/* Brukernavn-seksjon */}
+        {/* Brukernavn */}
         <View style={styles.usernameSection}>
           <Text style={styles.sectionTitle}>Brukernavn i fellesskapet</Text>
-          <Text style={styles.muted}>
-            {savedUsername
-              ? `Vises som «${savedUsername}» når du poster med navn.`
-              : 'Sett et brukernavn for å poste med navn i fellesskapet. Ellers postes du anonymt.'}
-          </Text>
-          <View style={styles.usernameRow}>
-            <TextInput
-              style={styles.usernameInput}
-              value={username}
-              onChangeText={setUsername}
-              placeholder="Ditt brukernavn"
-              placeholderTextColor={C.light}
-              autoCapitalize="none"
-              autoCorrect={false}
-              maxLength={30}
-            />
-            <TouchableOpacity
-              style={[
-                styles.usernameBtn,
-                (!username.trim() || savingUsername) && styles.usernameBtnDisabled
-              ]}
-              onPress={saveUsername}
-              disabled={!username.trim() || savingUsername}
-            >
-              <Text style={styles.usernameBtnText}>
-                {savingUsername ? '...' : 'Lagre'}
-              </Text>
-            </TouchableOpacity>
-          </View>
-          <Text style={styles.charCount}>{username.length}/30</Text>
+
+          {!editingUsername ? (
+            savedUsername ? (
+              <View style={styles.usernameDisplay}>
+                <View>
+                  <Text style={styles.usernameDisplayName}>{savedUsername}</Text>
+                  {justSaved && (
+                    <Text style={styles.savedConfirm}>✓ Lagret</Text>
+                  )}
+                </View>
+                <TouchableOpacity
+                  style={styles.endreBtn}
+                  onPress={() => setEditingUsername(true)}
+                >
+                  <Text style={styles.endreBtnText}>Endre</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <>
+                <Text style={styles.muted}>
+                  Sett et brukernavn for å poste med navn i fellesskapet.
+                </Text>
+                <TouchableOpacity
+                  style={[styles.usernameBtn, { marginTop: 12 }]}
+                  onPress={() => setEditingUsername(true)}
+                >
+                  <Text style={styles.usernameBtnText}>Sett brukernavn</Text>
+                </TouchableOpacity>
+              </>
+            )
+          ) : (
+            <>
+              <Text style={styles.muted}>Velg et navn som vises i fellesskapet.</Text>
+              <View style={styles.usernameRow}>
+                <TextInput
+                  style={styles.usernameInput}
+                  value={username}
+                  onChangeText={setUsername}
+                  placeholder="Ditt brukernavn"
+                  placeholderTextColor={C.light}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  maxLength={30}
+                  autoFocus
+                />
+                <TouchableOpacity
+                  style={[
+                    styles.usernameBtn,
+                    (!username.trim() || savingUsername) && styles.usernameBtnDisabled
+                  ]}
+                  onPress={saveUsername}
+                  disabled={!username.trim() || savingUsername}
+                >
+                  <Text style={styles.usernameBtnText}>
+                    {savingUsername ? '...' : 'Lagre'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              <View style={styles.usernameFooter}>
+                <Text style={styles.charCount}>{username.length}/30</Text>
+                <TouchableOpacity onPress={() => {
+                  setEditingUsername(false);
+                  setUsername(savedUsername || '');
+                }}>
+                  <Text style={styles.avbrytText}>Avbryt</Text>
+                </TouchableOpacity>
+              </View>
+            </>
+          )}
         </View>
 
         <Text style={[styles.muted, { marginTop: spacing.lg }]}>
@@ -298,6 +342,7 @@ export default function AccountScreen({ navigation }) {
     );
   }
 
+  // --- Anonym visning ---
   return (
     <ScrollView
       style={styles.screen}
@@ -389,15 +434,24 @@ const styles = StyleSheet.create({
   buttonOutlineText: { color: colors.textPrimary, fontSize: 16, fontWeight: "600" },
   buttonPressed: { opacity: 0.8 },
   usernameSection: {
-    marginTop: spacing.xl,
-    backgroundColor: C.warm,
-    borderRadius: 16,
-    padding: 16,
+    marginTop: spacing.xl, backgroundColor: C.warm,
+    borderRadius: 16, padding: 16,
   },
-  sectionTitle: {
-    fontSize: 15, fontWeight: '700',
-    color: C.dark, marginBottom: 6,
+  sectionTitle: { fontSize: 15, fontWeight: '700', color: C.dark, marginBottom: 6 },
+  usernameDisplay: {
+    flexDirection: 'row', justifyContent: 'space-between',
+    alignItems: 'center', marginTop: 8,
   },
+  usernameDisplayName: {
+    fontSize: 22, fontWeight: '800',
+    color: C.dark, letterSpacing: -0.3,
+  },
+  savedConfirm: { fontSize: 12, color: C.primary, fontWeight: '600', marginTop: 2 },
+  endreBtn: {
+    backgroundColor: C.white, borderRadius: 10,
+    paddingVertical: 7, paddingHorizontal: 14,
+  },
+  endreBtnText: { fontSize: 13, color: C.mid, fontWeight: '600' },
   usernameRow: {
     flexDirection: 'row', gap: 10,
     marginTop: 12, alignItems: 'center',
@@ -413,7 +467,12 @@ const styles = StyleSheet.create({
   },
   usernameBtnDisabled: { backgroundColor: C.border },
   usernameBtnText: { color: C.primary, fontSize: 14, fontWeight: '700' },
-  charCount: { fontSize: 11, color: C.light, textAlign: 'right', marginTop: 4 },
+  usernameFooter: {
+    flexDirection: 'row', justifyContent: 'space-between',
+    alignItems: 'center', marginTop: 6,
+  },
+  charCount: { fontSize: 11, color: C.light },
+  avbrytText: { fontSize: 12, color: C.light },
   legalSection: {
     marginTop: spacing.xl, flexDirection: "row",
     justifyContent: "center", gap: spacing.xl,
