@@ -1,73 +1,185 @@
-// screens/HomeScreen.js
-import { ScrollView, StyleSheet, Text, View } from "react-native";
-import Card from "../components/Card";
-import { colors, spacing } from "../theme";
+import { useEffect } from "react";
+import {
+  ScrollView, StyleSheet, Text, View,
+  TouchableOpacity, Platform
+} from "react-native";
 
-// "navigation" is handed to every screen automatically. We use it to move
-// to other screens, e.g. navigation.navigate("Chat").
+const C = {
+  bg: '#FAF7F2', warm: '#F5EFE6', white: '#FFFFFF',
+  dark: '#1C1714', primary: '#C17B4E',
+  mid: '#6B5B52', light: '#A8998E', border: '#EDE5DA',
+};
+
 export default function HomeScreen({ navigation }) {
+  useEffect(() => {
+    navigation.setOptions({
+      title: 'MANNPOD fellesskap',
+      headerRight: () => (
+        <TouchableOpacity
+          style={styles.accountPill}
+          onPress={() => navigation.navigate('Account')}
+        >
+          <View style={styles.accountAvatar}>
+            <Text style={styles.accountAvatarText}>M</Text>
+          </View>
+          <Text style={styles.accountPillText}>Min konto</Text>
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation]);
+
   return (
-    <View style={styles.screen}>
-      <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.tagline}>
-        
-        </Text>
-        <Card
-          title="Min konto"
-          text="Ta vare på samtalene dine."
-          onPress={() => navigation.navigate("Account")}
-        />
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={styles.content}
+    >
+      {/* Hvermansen */}
+      <TouchableOpacity
+        style={styles.hvermansen}
+        onPress={() => navigation.navigate('Conversations')}
+        activeOpacity={0.85}
+      >
+        <View>
+          <Text style={styles.hverLabel}>Alltid tilgjengelig</Text>
+          <Text style={styles.hverTitle}>Chat med Hvermansen</Text>
+          <Text style={styles.hverSub}>Hvermansen lytter alltid</Text>
+        </View>
+        <View style={styles.hverArrow}>
+          <Text style={styles.hverArrowText}>→</Text>
+        </View>
+      </TouchableOpacity>
 
-        {/* This card opens the Daily check-in screen when tapped */}
-        <Card
-          title="Daglig innsjekk"
-          text="Hvordan har du det i dag?"
-          onPress={() => navigation.navigate("CheckIn")}
-        />
+      {/* Fellesskap */}
+      <TouchableOpacity
+        style={styles.card}
+        onPress={() => navigation.navigate('Fellesskap')}
+        activeOpacity={0.85}
+      >
+        <View>
+          <Text style={styles.cardLabel}>Åpent for alle</Text>
+          <Text style={styles.cardTitle}>Fellesskap</Text>
+          <Text style={styles.cardSub}>Del og les hva andre bærer på</Text>
+        </View>
+        <View style={styles.cardArrow}>
+          <Text style={styles.cardArrowText}>→</Text>
+        </View>
+      </TouchableOpacity>
 
-        {/* This card opens the Chat screen when tapped */}
-       <Card
-          title="Kan vi snakke litt?"
-          text="Snakk med en som aldri sover."
-          onPress={() => navigation.navigate("Conversations")}
-        />
-
-        {/* This card opens the Share screen when tapped */}
-        <Card
-          title="Les hva andre deler"
-          text="Ord fra andre som også bærer på noe."
-          onPress={() => navigation.navigate("Share")}
-        />
-
-        {/* This card opens the Podcast screen when tapped */}
-      
-
-
-        {/* This card opens the About screen when tapped */}
-        <Card
-          title="Viktig å vite"
-          text="Om appen, og hjelp når det haster."
-          onPress={() => navigation.navigate("About")}
-        />
-      </ScrollView>
-    </View>
+      {/* Viktig å vite */}
+      <TouchableOpacity
+        style={styles.viktig}
+        onPress={() => navigation.navigate('About')}
+        activeOpacity={0.85}
+      >
+        <Text style={styles.viktigTitle}>Viktig å vite</Text>
+        <Text style={styles.viktigSub}>Krisetelefoner og om appen</Text>
+      </TouchableOpacity>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: C.bg,
   },
   content: {
-    paddingTop: spacing.lg,
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.xl,
+    padding: 16,
+    paddingBottom: 40,
+    gap: 10,
   },
-  tagline: {
-    color: colors.textMuted,
-    fontSize: 15,
-    lineHeight: 22,
-    marginBottom: spacing.xl,
+  accountPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: C.warm,
+    borderRadius: 20,
+    paddingVertical: 6,
+    paddingLeft: 6,
+    paddingRight: 12,
+    marginRight: Platform.OS === 'ios' ? 0 : 8,
+  },
+  accountAvatar: {
+    width: 24, height: 24, borderRadius: 12,
+    backgroundColor: C.dark,
+    justifyContent: 'center', alignItems: 'center',
+  },
+  accountAvatarText: {
+    fontSize: 10, fontWeight: '800', color: C.primary,
+  },
+  accountPillText: {
+    fontSize: 12, fontWeight: '600', color: C.dark,
+  },
+  hvermansen: {
+    backgroundColor: C.dark,
+    borderRadius: 20, padding: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  hverLabel: {
+    fontSize: 11, color: C.primary,
+    fontWeight: '600', textTransform: 'uppercase',
+    letterSpacing: 0.6, marginBottom: 4,
+  },
+  hverTitle: {
+    fontSize: 18, fontWeight: '800',
+    color: C.bg, letterSpacing: -0.3, marginBottom: 3,
+  },
+  hverSub: {
+    fontSize: 13, color: C.light,
+  },
+  hverArrow: {
+    width: 40, height: 40, borderRadius: 20,
+    backgroundColor: C.primary,
+    justifyContent: 'center', alignItems: 'center',
+  },
+  hverArrowText: {
+    color: C.white, fontSize: 18, fontWeight: '700',
+  },
+  card: {
+    backgroundColor: C.white,
+    borderRadius: 20, padding: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    shadowColor: C.dark,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 2,
+  },
+  cardLabel: {
+    fontSize: 11, color: C.light,
+    fontWeight: '600', textTransform: 'uppercase',
+    letterSpacing: 0.6, marginBottom: 4,
+  },
+  cardTitle: {
+    fontSize: 18, fontWeight: '800',
+    color: C.dark, letterSpacing: -0.3, marginBottom: 3,
+  },
+  cardSub: {
+    fontSize: 13, color: C.mid,
+  },
+  cardArrow: {
+    width: 40, height: 40, borderRadius: 20,
+    backgroundColor: C.warm,
+    justifyContent: 'center', alignItems: 'center',
+  },
+  cardArrowText: {
+    color: C.dark, fontSize: 18, fontWeight: '700',
+  },
+  viktig: {
+    backgroundColor: C.warm,
+    borderRadius: 16, padding: 18,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  viktigTitle: {
+    fontSize: 14, fontWeight: '700', color: C.dark,
+  },
+  viktigSub: {
+    fontSize: 12, color: C.light, marginTop: 2,
   },
 });
