@@ -33,46 +33,50 @@ export default function HomeScreen({ navigation }) {
       style={styles.screen}
       contentContainerStyle={styles.content}
     >
-      {/* Hvermansen */}
-      <TouchableOpacity
-        style={styles.hvermansen}
-        onPress={() => navigation.navigate('Conversations')}
-        activeOpacity={0.85}
-      >
-        <View>
-          <Text style={styles.hverLabel}>Alltid tilgjengelig</Text>
-          <Text style={styles.hverTitle}>Chat med Hvermansen</Text>
-          <Text style={styles.hverSub}>Hvermansen lytter alltid</Text>
-        </View>
-        <View style={styles.hverArrow}>
-          <Text style={styles.hverArrowText}>→</Text>
-        </View>
-      </TouchableOpacity>
+      {/* Øverste kort */}
+      <View style={styles.topCards}>
+        <TouchableOpacity
+          style={styles.hvermansen}
+          onPress={() => navigation.navigate('Conversations')}
+          activeOpacity={0.85}
+        >
+          <View>
+            <Text style={styles.hverLabel}>Alltid tilgjengelig</Text>
+            <Text style={styles.hverTitle}>Chat med Hvermansen</Text>
+            <Text style={styles.hverSub}>Hvermansen lytter alltid</Text>
+          </View>
+          <View style={styles.hverArrow}>
+            <Text style={styles.hverArrowText}>→</Text>
+          </View>
+        </TouchableOpacity>
 
-      {/* Fellesskap */}
-      <TouchableOpacity
-        style={styles.card}
-        onPress={() => navigation.navigate('Fellesskap')}
-        activeOpacity={0.85}
-      >
-        <View>
-          <Text style={styles.cardLabel}>Åpent for alle</Text>
-          <Text style={styles.cardTitle}>Fellesskap</Text>
-          <Text style={styles.cardSub}>Del og les hva andre bærer på</Text>
-        </View>
-        <View style={styles.cardArrow}>
-          <Text style={styles.cardArrowText}>→</Text>
-        </View>
-      </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.card}
+          onPress={() => navigation.navigate('Fellesskap')}
+          activeOpacity={0.85}
+        >
+          <View>
+            <Text style={styles.cardLabel}>Åpent for alle</Text>
+            <Text style={styles.cardTitle}>Fellesskap</Text>
+            <Text style={styles.cardSub}>Del og les hva andre bærer på</Text>
+          </View>
+          <View style={styles.cardArrow}>
+            <Text style={styles.cardArrowText}>→</Text>
+          </View>
+        </TouchableOpacity>
+      </View>
 
-      {/* Viktig å vite */}
+      {/* Viktig å vite — alltid nederst */}
       <TouchableOpacity
         style={styles.viktig}
         onPress={() => navigation.navigate('About')}
         activeOpacity={0.85}
       >
-        <Text style={styles.viktigTitle}>Viktig å vite</Text>
-        <Text style={styles.viktigSub}>Krisetelefoner og om appen</Text>
+        <View>
+          <Text style={styles.viktigTitle}>Viktig å vite</Text>
+          <Text style={styles.viktigSub}>Krisetelefoner og om appen</Text>
+        </View>
+        <Text style={styles.viktigArrow}>→</Text>
       </TouchableOpacity>
     </ScrollView>
   );
@@ -84,8 +88,12 @@ const styles = StyleSheet.create({
     backgroundColor: C.bg,
   },
   content: {
+    flexGrow: 1,
     padding: 16,
-    paddingBottom: 40,
+    paddingBottom: 32,
+    justifyContent: 'space-between',
+  },
+  topCards: {
     gap: 10,
   },
   accountPill: {
@@ -175,11 +183,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginTop: 16,
   },
   viktigTitle: {
     fontSize: 14, fontWeight: '700', color: C.dark,
   },
   viktigSub: {
     fontSize: 12, color: C.light, marginTop: 2,
+  },
+  viktigArrow: {
+    fontSize: 18, color: C.light,
   },
 });
