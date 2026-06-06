@@ -7,7 +7,6 @@ import { colors } from "./theme";
 import { supabase } from "./supabaseClient";
 import HomeScreen from "./screens/HomeScreen";
 import ChatScreen from "./screens/ChatScreen";
-import CheckInScreen from "./screens/CheckInScreen";
 import LogScreen from "./screens/LogScreen";
 import AccountScreen from "./screens/AccountScreen";
 import ShareScreen from "./screens/ShareScreen";
@@ -17,13 +16,14 @@ import ConversationsScreen from "./screens/ConversationsScreen";
 import PrivacyScreen from "./screens/PrivacyScreen";
 import TermsScreen from "./screens/TermsScreen";
 import OnboardingScreen from "./screens/OnboardingScreen";
+import FellesskapScreen from "./screens/FellesskapScreen";
+import ThreadScreen from "./screens/ThreadScreen";
+import UsernameScreen from "./screens/UsernameScreen";
 
 const Stack = createNativeStackNavigator();
 
-// Key we store in the browser to remember the user has seen onboarding.
 const ONBOARDING_KEY = "mannpod_onboarded_v1";
 
-// Tiny safe helpers — on web we read/write localStorage; on native it's a no-op for now.
 function readOnboardedFlag() {
   try {
     if (Platform.OS === "web" && typeof window !== "undefined") {
@@ -69,10 +69,8 @@ export default function App() {
         console.error("STARTUP CRASH:", e.message);
       }
 
-      // Check if the user has seen onboarding before.
       const onboarded = readOnboardedFlag();
       setNeedsOnboarding(!onboarded);
-
       setReady(true);
     }
     signInQuietly();
@@ -83,13 +81,8 @@ export default function App() {
     setNeedsOnboarding(false);
   }
 
-  if (!ready) {
-    return <LoadingScreen />;
-  }
-
-  if (needsOnboarding) {
-    return <OnboardingScreen onDone={finishOnboarding} />;
-  }
+  if (!ready) return <LoadingScreen />;
+  if (needsOnboarding) return <OnboardingScreen onDone={finishOnboarding} />;
 
   return (
     <NavigationContainer>
@@ -101,12 +94,46 @@ export default function App() {
           contentStyle: { backgroundColor: colors.background },
         }}
       >
-        <Stack.Screen name="Home" component={HomeScreen} options={{ title: "MANNPOD Chat" }} />
-        <Stack.Screen name="Chat" component={ChatScreen} options={{ title: "Kan vi snakke litt?" }} />
-        <Stack.Screen name="CheckIn" component={CheckInScreen} options={{ title: "Daglig innsjekk" }} />
-        <Stack.Screen name="Log" component={LogScreen} options={{ title: "Min logg" }} />
-        <Stack.Screen name="Account" component={AccountScreen} options={{ title: "Min konto" }} />
-        <Stack.Screen name="Share" component={ShareScreen} options={{ title: "Les hva andre deler" }} />
+        <Stack.Screen
+          name="Home"
+          component={HomeScreen}
+          options={{ title: "MANNPOD" }}
+        />
+        <Stack.Screen
+          name="Chat"
+          component={ChatScreen}
+          options={{ title: "Chat med Hvermansen" }}
+        />
+        <Stack.Screen
+          name="Log"
+          component={LogScreen}
+          options={{ title: "Min logg" }}
+        />
+        <Stack.Screen
+          name="Account"
+          component={AccountScreen}
+          options={{ title: "Min konto" }}
+        />
+        <Stack.Screen
+          name="Share"
+          component={ShareScreen}
+          options={{ title: "Fellesskap" }}
+        />
+        <Stack.Screen
+          name="Fellesskap"
+          component={FellesskapScreen}
+          options={{ title: "MANNPOD fellesskap" }}
+        />
+        <Stack.Screen
+          name="Thread"
+          component={ThreadScreen}
+          options={{ title: "Tråd" }}
+        />
+        <Stack.Screen
+          name="Username"
+          component={UsernameScreen}
+          options={{ title: "Brukernavn" }}
+        />
         <Stack.Screen
           name="Conversations"
           component={ConversationsScreen}
