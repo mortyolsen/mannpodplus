@@ -22,6 +22,11 @@ export default function FellesskapScreen({ navigation }) {
   const [user, setUser] = useState(null);
   const [username, setUsername] = useState(null);
 
+  // Rediger-state
+  const [editingThread, setEditingThread] = useState(null);
+  const [editContent, setEditContent] = useState('');
+  const [saving, setSaving] = useState(false);
+
   useEffect(() => {
     getUser();
     fetchThreads();
@@ -79,6 +84,25 @@ export default function FellesskapScreen({ navigation }) {
     setPosting(false);
   }
 
+  async function saveEdit() {
+    if (!editContent.trim() || !editingThread) return;
+    setSaving(true);
+
+    const { error } = await supabase
+      .from('threads')
+      .update({ content: editContent.trim() })
+      .eq('id', editingThread.id);
+
+    if (error) {
+      Alert.alert('Noe gikk galt', 'Prøv igjen');
+    } else {
+      setEditingThread(null);
+      setEditContent('');
+      fetchThreads();
+    }
+    setSaving(false);
+  }
+
   async function reportThread(threadId) {
     const { error } = await supabase
       .from('community_reports')
@@ -117,10 +141,13 @@ export default function FellesskapScreen({ navigation }) {
     return `Vises som ${username}`;
   }
 
+  const isOwnThread = (item) => user && item.user_id === user.id;
+
   const renderThread = ({ item }) => {
     const isPending = item.status === 'pending';
     const displayName = getDisplayName(item);
     const replyCount = item.replies?.[0]?.count || 0;
+    const isOwn = isOwnThread(item);
 
     return (
       <TouchableOpacity
@@ -159,16 +186,32 @@ export default function FellesskapScreen({ navigation }) {
             >
               <Text style={styles.replyBtnText}>Les tråden</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => Alert.alert(
-              'Rapporter innlegg',
-              'Vil du rapportere dette innlegget?',
-              [
-                { text: 'Avbryt', style: 'cancel' },
-                { text: 'Rapporter', style: 'destructive', onPress: () => reportThread(item.id) }
-              ]
-            )}>
-              <Text style={styles.reportText}>Rapporter</Text>
-            </TouchableOpacity>
+
+            <View style={styles.footerActions}>
+              {isOwn && (
+                <TouchableOpacity
+                  style={styles.editBtn}
+                  onPress={() => {
+                    setEditingThread(item);
+                    setEditContent(item.content);
+                  }}
+                >
+                  <Text style={styles.editBtnText}>Rediger</Text>
+                </TouchableOpacity>
+              )}
+              {!isOwn && (
+                <TouchableOpacity onPress={() => Alert.alert(
+                  'Rapporter innlegg',
+                  'Vil du rapportere dette innlegget?',
+                  [
+                    { text: 'Avbryt', style: 'cancel' },
+                    { text: 'Rapporter', style: 'destructive', onPress: () => reportThread(item.id) }
+                  ]
+                )}>
+                  <Text style={styles.reportText}>Rapporter</Text>
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
         )}
       </TouchableOpacity>
@@ -212,6 +255,7 @@ export default function FellesskapScreen({ navigation }) {
         ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
       />
 
+      {/* Ny tråd-modal */}
       <Modal visible={showNewThread} animationType="slide" presentationStyle="pageSheet">
         <View style={styles.modal}>
           <View style={styles.modalHeader}>
@@ -265,6 +309,39 @@ export default function FellesskapScreen({ navigation }) {
           <Text style={styles.charCount}>{newContent.length}/1000</Text>
         </View>
       </Modal>
+
+      {/* Rediger-modal */}
+      <Modal visible={!!editingThread} animationType="slide" presentationStyle="pageSheet">
+        <View style={styles.modal}>
+          <View style={styles.modalHeader}>
+            <TouchableOpacity onPress={() => { setEditingThread(null); setEditContent(''); }}>
+              <Text style={styles.cancelText}>Avbryt</Text>
+            </TouchableOpacity>
+            <Text style={styles.modalTitle}>Rediger tråd</Text>
+            <TouchableOpacity
+              onPress={saveEdit}
+              disabled={saving || !editContent.trim()}
+            >
+              <Text style={[styles.postText, (!editContent.trim() || saving) && styles.postTextDisabled]}>
+                {saving ? 'Lagrer...' : 'Lagre'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <TextInput
+            style={styles.textInput}
+            placeholder="Rediger innlegget ditt..."
+            placeholderTextColor={C.light}
+            multiline
+            value={editContent}
+            onChangeText={setEditContent}
+            maxLength={1000}
+            autoFocus
+          />
+
+          <Text style={styles.charCount}>{editContent.length}/1000</Text>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -302,9 +379,14 @@ const styles = StyleSheet.create({
   threadContent: { fontSize: 14, color: '#3D3028', lineHeight: 21, marginBottom: 12 },
   pendingBox: { backgroundColor: C.warm, borderRadius: 10, padding: 12, marginBottom: 12 },
   pendingText: { fontSize: 13, color: C.light, fontStyle: 'italic', textAlign: 'center' },
-  threadFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  threadFooter: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+  },
   replyBtn: { backgroundColor: C.warm, borderRadius: 10, paddingVertical: 7, paddingHorizontal: 14 },
   replyBtnText: { fontSize: 12, color: C.mid, fontWeight: '600' },
+  footerActions: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  editBtn: { backgroundColor: C.warm, borderRadius: 10, paddingVertical: 7, paddingHorizontal: 14 },
+  editBtnText: { fontSize: 12, color: C.primary, fontWeight: '600' },
   reportText: { fontSize: 12, color: C.light },
   emptyText: { textAlign: 'center', color: C.light, fontSize: 14, marginTop: 40 },
   modal: { flex: 1, backgroundColor: C.bg, padding: 20 },
