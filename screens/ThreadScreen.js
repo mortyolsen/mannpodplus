@@ -14,6 +14,17 @@ const C = {
 
 const PREVIEW_LENGTH = 150;
 
+function confirmAction(title, message, onConfirm) {
+  if (Platform.OS === 'web') {
+    if (window.confirm(`${title}\n\n${message}`)) onConfirm();
+  } else {
+    Alert.alert(title, message, [
+      { text: 'Avbryt', style: 'cancel' },
+      { text: 'Slett', style: 'destructive', onPress: onConfirm }
+    ]);
+  }
+}
+
 export default function ThreadScreen({ route, navigation }) {
   const { thread } = route.params;
   const [replies, setReplies] = useState([]);
@@ -61,7 +72,6 @@ export default function ThreadScreen({ route, navigation }) {
   async function postReply() {
     if (!replyText.trim() || !user) return;
     setPosting(true);
-
     const { error } = await supabase
       .from('replies')
       .insert({
@@ -70,7 +80,6 @@ export default function ThreadScreen({ route, navigation }) {
         content: replyText.trim(),
         is_anonymous: isAnonymous || !username,
       });
-
     if (error) {
       Alert.alert('Noe gikk galt', 'Prøv igjen');
     } else {
@@ -85,7 +94,6 @@ export default function ThreadScreen({ route, navigation }) {
       .from('replies')
       .delete()
       .eq('id', replyId);
-
     if (error) {
       Alert.alert('Noe gikk galt', 'Prøv igjen');
     } else {
@@ -101,7 +109,6 @@ export default function ThreadScreen({ route, navigation }) {
         content_type: 'reply',
         content_id: replyId,
       });
-
     if (error?.code === '23505') {
       Alert.alert('', 'Du har allerede rapportert dette svaret.');
     } else if (!error) {
@@ -163,25 +170,23 @@ export default function ThreadScreen({ route, navigation }) {
 
           {!isPending && (
             isOwn ? (
-              <TouchableOpacity onPress={() => Alert.alert(
-                'Slette svaret?',
-                'Dette kan ikke angres.',
-                [
-                  { text: 'Avbryt', style: 'cancel' },
-                  { text: 'Slett', style: 'destructive', onPress: () => deleteReply(item.id) }
-                ]
-              )}>
+              <TouchableOpacity onPress={() =>
+                confirmAction(
+                  'Slette svaret?',
+                  'Dette kan ikke angres.',
+                  () => deleteReply(item.id)
+                )
+              }>
                 <Text style={styles.deleteText}>Slett</Text>
               </TouchableOpacity>
             ) : (
-              <TouchableOpacity onPress={() => Alert.alert(
-                'Rapporter svar',
-                'Vil du rapportere dette svaret?',
-                [
-                  { text: 'Avbryt', style: 'cancel' },
-                  { text: 'Rapporter', style: 'destructive', onPress: () => reportReply(item.id) }
-                ]
-              )}>
+              <TouchableOpacity onPress={() =>
+                confirmAction(
+                  'Rapporter svar?',
+                  'Vil du rapportere dette svaret?',
+                  () => reportReply(item.id)
+                )
+              }>
                 <Text style={styles.reportText}>Rapporter</Text>
               </TouchableOpacity>
             )
