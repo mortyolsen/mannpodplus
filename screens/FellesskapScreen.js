@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,
-  TextInput, Modal, Switch, Alert, RefreshControl, ActivityIndicator
+  TextInput, Modal, Switch, Alert, RefreshControl,
+  ActivityIndicator, Platform
 } from 'react-native';
 import { supabase } from '../supabaseClient';
 
@@ -12,6 +13,17 @@ const C = {
 };
 
 const PREVIEW_LENGTH = 150;
+
+function confirmAction(title, message, onConfirm) {
+  if (Platform.OS === 'web') {
+    if (window.confirm(`${title}\n\n${message}`)) onConfirm();
+  } else {
+    Alert.alert(title, message, [
+      { text: 'Avbryt', style: 'cancel' },
+      { text: 'Slett', style: 'destructive', onPress: onConfirm }
+    ]);
+  }
+}
 
 export default function FellesskapScreen({ navigation }) {
   const [threads, setThreads] = useState([]);
@@ -24,7 +36,6 @@ export default function FellesskapScreen({ navigation }) {
   const [user, setUser] = useState(null);
   const [username, setUsername] = useState(null);
   const [expandedThreads, setExpandedThreads] = useState({});
-
   const [editingThread, setEditingThread] = useState(null);
   const [editContent, setEditContent] = useState('');
   const [saving, setSaving] = useState(false);
@@ -66,7 +77,6 @@ export default function FellesskapScreen({ navigation }) {
   async function postThread() {
     if (!newContent.trim()) return;
     setPosting(true);
-
     const { error } = await supabase
       .from('threads')
       .insert({
@@ -74,7 +84,6 @@ export default function FellesskapScreen({ navigation }) {
         content: newContent.trim(),
         is_anonymous: isAnonymous || !username,
       });
-
     if (error) {
       Alert.alert('Noe gikk galt', 'Prøv igjen');
     } else {
@@ -89,12 +98,10 @@ export default function FellesskapScreen({ navigation }) {
   async function saveEdit() {
     if (!editContent.trim() || !editingThread) return;
     setSaving(true);
-
     const { error } = await supabase
       .from('threads')
       .update({ content: editContent.trim() })
       .eq('id', editingThread.id);
-
     if (error) {
       Alert.alert('Noe gikk galt', 'Prøv igjen');
     } else {
@@ -110,7 +117,6 @@ export default function FellesskapScreen({ navigation }) {
       .from('threads')
       .delete()
       .eq('id', threadId);
-
     if (error) {
       Alert.alert('Noe gikk galt', 'Prøv igjen');
     } else {
@@ -126,7 +132,6 @@ export default function FellesskapScreen({ navigation }) {
         content_type: 'thread',
         content_id: threadId,
       });
-
     if (error?.code === '23505') {
       Alert.alert('', 'Du har allerede rapportert dette innlegget.');
     } else if (!error) {
@@ -204,7 +209,7 @@ export default function FellesskapScreen({ navigation }) {
             </Text>
             {isLong && (
               <TouchableOpacity
-                onPress={(e) => { e.stopPropagation?.(); toggleExpanded(item.id); }}
+                onPress={() => toggleExpanded(item.id)}
                 style={styles.lesmerBtn}
               >
                 <Text style={styles.lesmerText}>
@@ -233,26 +238,24 @@ export default function FellesskapScreen({ navigation }) {
                   >
                     <Text style={styles.editBtnText}>Rediger</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity onPress={() => Alert.alert(
-                    'Slette tråden?',
-                    'Dette kan ikke angres.',
-                    [
-                      { text: 'Avbryt', style: 'cancel' },
-                      { text: 'Slett', style: 'destructive', onPress: () => deleteThread(item.id) }
-                    ]
-                  )}>
+                  <TouchableOpacity onPress={() =>
+                    confirmAction(
+                      'Slette tråden?',
+                      'Dette kan ikke angres.',
+                      () => deleteThread(item.id)
+                    )
+                  }>
                     <Text style={styles.deleteText}>Slett</Text>
                   </TouchableOpacity>
                 </>
               ) : (
-                <TouchableOpacity onPress={() => Alert.alert(
-                  'Rapporter innlegg',
-                  'Vil du rapportere dette innlegget?',
-                  [
-                    { text: 'Avbryt', style: 'cancel' },
-                    { text: 'Rapporter', style: 'destructive', onPress: () => reportThread(item.id) }
-                  ]
-                )}>
+                <TouchableOpacity onPress={() =>
+                  confirmAction(
+                    'Rapporter innlegg?',
+                    'Vil du rapportere dette innlegget?',
+                    () => reportThread(item.id)
+                  )
+                }>
                   <Text style={styles.reportText}>Rapporter</Text>
                 </TouchableOpacity>
               )}
@@ -314,7 +317,6 @@ export default function FellesskapScreen({ navigation }) {
               </Text>
             </TouchableOpacity>
           </View>
-
           <TextInput
             style={styles.textInput}
             placeholder="Hva vil du dele med fellesskapet?"
@@ -325,7 +327,6 @@ export default function FellesskapScreen({ navigation }) {
             maxLength={1000}
             autoFocus
           />
-
           <View style={styles.anonRow}>
             <View style={{ flex: 1, marginRight: 12 }}>
               <Text style={styles.anonLabel}>Post anonymt</Text>
@@ -338,7 +339,6 @@ export default function FellesskapScreen({ navigation }) {
               trackColor={{ true: C.primary }}
             />
           </View>
-
           {!username && (
             <TouchableOpacity
               style={styles.usernameHint}
@@ -347,7 +347,6 @@ export default function FellesskapScreen({ navigation }) {
               <Text style={styles.usernameHintText}>Gå til Min konto for å sette brukernavn →</Text>
             </TouchableOpacity>
           )}
-
           <Text style={styles.charCount}>{newContent.length}/1000</Text>
         </View>
       </Modal>
@@ -366,7 +365,6 @@ export default function FellesskapScreen({ navigation }) {
               </Text>
             </TouchableOpacity>
           </View>
-
           <TextInput
             style={styles.textInput}
             placeholder="Rediger innlegget ditt..."
@@ -377,7 +375,6 @@ export default function FellesskapScreen({ navigation }) {
             maxLength={1000}
             autoFocus
           />
-
           <Text style={styles.charCount}>{editContent.length}/1000</Text>
         </View>
       </Modal>
