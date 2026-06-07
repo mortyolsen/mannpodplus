@@ -11,6 +11,8 @@ const C = {
   mid: '#6B5B52', light: '#A8998E', border: '#EDE5DA',
 };
 
+const PREVIEW_LENGTH = 150;
+
 export default function FellesskapScreen({ navigation }) {
   const [threads, setThreads] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -21,8 +23,8 @@ export default function FellesskapScreen({ navigation }) {
   const [posting, setPosting] = useState(false);
   const [user, setUser] = useState(null);
   const [username, setUsername] = useState(null);
+  const [expandedThreads, setExpandedThreads] = useState({});
 
-  // Rediger-state
   const [editingThread, setEditingThread] = useState(null);
   const [editContent, setEditContent] = useState('');
   const [saving, setSaving] = useState(false);
@@ -103,6 +105,19 @@ export default function FellesskapScreen({ navigation }) {
     setSaving(false);
   }
 
+  async function deleteThread(threadId) {
+    const { error } = await supabase
+      .from('threads')
+      .delete()
+      .eq('id', threadId);
+
+    if (error) {
+      Alert.alert('Noe gikk galt', 'Prøv igjen');
+    } else {
+      fetchThreads();
+    }
+  }
+
   async function reportThread(threadId) {
     const { error } = await supabase
       .from('community_reports')
@@ -141,6 +156,10 @@ export default function FellesskapScreen({ navigation }) {
     return `Vises som ${username}`;
   }
 
+  function toggleExpanded(id) {
+    setExpandedThreads(prev => ({ ...prev, [id]: !prev[id] }));
+  }
+
   const isOwnThread = (item) => user && item.user_id === user.id;
 
   const renderThread = ({ item }) => {
@@ -148,6 +167,8 @@ export default function FellesskapScreen({ navigation }) {
     const displayName = getDisplayName(item);
     const replyCount = item.replies?.[0]?.count || 0;
     const isOwn = isOwnThread(item);
+    const isLong = item.content.length > PREVIEW_LENGTH;
+    const isExpanded = expandedThreads[item.id];
 
     return (
       <TouchableOpacity
@@ -175,7 +196,23 @@ export default function FellesskapScreen({ navigation }) {
             <Text style={styles.pendingText}>Under vurdering</Text>
           </View>
         ) : (
-          <Text style={styles.threadContent}>{item.content}</Text>
+          <>
+            <Text style={styles.threadContent}>
+              {isLong && !isExpanded
+                ? item.content.slice(0, PREVIEW_LENGTH).trimEnd() + '...'
+                : item.content}
+            </Text>
+            {isLong && (
+              <TouchableOpacity
+                onPress={(e) => { e.stopPropagation?.(); toggleExpanded(item.id); }}
+                style={styles.lesmerBtn}
+              >
+                <Text style={styles.lesmerText}>
+                  {isExpanded ? 'Vis mindre' : 'Les mer'}
+                </Text>
+              </TouchableOpacity>
+            )}
+          </>
         )}
 
         {!isPending && (
@@ -188,18 +225,26 @@ export default function FellesskapScreen({ navigation }) {
             </TouchableOpacity>
 
             <View style={styles.footerActions}>
-              {isOwn && (
-                <TouchableOpacity
-                  style={styles.editBtn}
-                  onPress={() => {
-                    setEditingThread(item);
-                    setEditContent(item.content);
-                  }}
-                >
-                  <Text style={styles.editBtnText}>Rediger</Text>
-                </TouchableOpacity>
-              )}
-              {!isOwn && (
+              {isOwn ? (
+                <>
+                  <TouchableOpacity
+                    style={styles.editBtn}
+                    onPress={() => { setEditingThread(item); setEditContent(item.content); }}
+                  >
+                    <Text style={styles.editBtnText}>Rediger</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => Alert.alert(
+                    'Slette tråden?',
+                    'Dette kan ikke angres.',
+                    [
+                      { text: 'Avbryt', style: 'cancel' },
+                      { text: 'Slett', style: 'destructive', onPress: () => deleteThread(item.id) }
+                    ]
+                  )}>
+                    <Text style={styles.deleteText}>Slett</Text>
+                  </TouchableOpacity>
+                </>
+              ) : (
                 <TouchableOpacity onPress={() => Alert.alert(
                   'Rapporter innlegg',
                   'Vil du rapportere dette innlegget?',
@@ -263,10 +308,7 @@ export default function FellesskapScreen({ navigation }) {
               <Text style={styles.cancelText}>Avbryt</Text>
             </TouchableOpacity>
             <Text style={styles.modalTitle}>Ny tråd</Text>
-            <TouchableOpacity
-              onPress={postThread}
-              disabled={posting || !newContent.trim()}
-            >
+            <TouchableOpacity onPress={postThread} disabled={posting || !newContent.trim()}>
               <Text style={[styles.postText, (!newContent.trim() || posting) && styles.postTextDisabled]}>
                 Del
               </Text>
@@ -318,10 +360,7 @@ export default function FellesskapScreen({ navigation }) {
               <Text style={styles.cancelText}>Avbryt</Text>
             </TouchableOpacity>
             <Text style={styles.modalTitle}>Rediger tråd</Text>
-            <TouchableOpacity
-              onPress={saveEdit}
-              disabled={saving || !editContent.trim()}
-            >
+            <TouchableOpacity onPress={saveEdit} disabled={saving || !editContent.trim()}>
               <Text style={[styles.postText, (!editContent.trim() || saving) && styles.postTextDisabled]}>
                 {saving ? 'Lagrer...' : 'Lagre'}
               </Text>
@@ -376,17 +415,21 @@ const styles = StyleSheet.create({
   authorName: { fontSize: 13, fontWeight: '700', color: C.dark },
   timeText: { fontSize: 11, color: C.light },
   replyCount: { fontSize: 12, color: C.light },
-  threadContent: { fontSize: 14, color: '#3D3028', lineHeight: 21, marginBottom: 12 },
+  threadContent: { fontSize: 14, color: '#3D3028', lineHeight: 21, marginBottom: 4 },
+  lesmerBtn: { marginBottom: 10 },
+  lesmerText: { fontSize: 13, color: C.primary, fontWeight: '600' },
   pendingBox: { backgroundColor: C.warm, borderRadius: 10, padding: 12, marginBottom: 12 },
   pendingText: { fontSize: 13, color: C.light, fontStyle: 'italic', textAlign: 'center' },
   threadFooter: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    flexDirection: 'row', justifyContent: 'space-between',
+    alignItems: 'center', marginTop: 8,
   },
   replyBtn: { backgroundColor: C.warm, borderRadius: 10, paddingVertical: 7, paddingHorizontal: 14 },
   replyBtnText: { fontSize: 12, color: C.mid, fontWeight: '600' },
   footerActions: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   editBtn: { backgroundColor: C.warm, borderRadius: 10, paddingVertical: 7, paddingHorizontal: 14 },
   editBtnText: { fontSize: 12, color: C.primary, fontWeight: '600' },
+  deleteText: { fontSize: 12, color: '#d96b6b', fontWeight: '600' },
   reportText: { fontSize: 12, color: C.light },
   emptyText: { textAlign: 'center', color: C.light, fontSize: 14, marginTop: 40 },
   modal: { flex: 1, backgroundColor: C.bg, padding: 20 },
