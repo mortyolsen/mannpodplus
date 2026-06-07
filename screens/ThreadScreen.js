@@ -12,6 +12,8 @@ const C = {
   mid: '#6B5B52', light: '#A8998E', border: '#EDE5DA',
 };
 
+const PREVIEW_LENGTH = 150;
+
 export default function ThreadScreen({ route, navigation }) {
   const { thread } = route.params;
   const [replies, setReplies] = useState([]);
@@ -21,6 +23,7 @@ export default function ThreadScreen({ route, navigation }) {
   const [posting, setPosting] = useState(false);
   const [user, setUser] = useState(null);
   const [username, setUsername] = useState(null);
+  const [expandedReplies, setExpandedReplies] = useState({});
 
   useEffect(() => {
     getUser();
@@ -77,6 +80,19 @@ export default function ThreadScreen({ route, navigation }) {
     setPosting(false);
   }
 
+  async function deleteReply(replyId) {
+    const { error } = await supabase
+      .from('replies')
+      .delete()
+      .eq('id', replyId);
+
+    if (error) {
+      Alert.alert('Noe gikk galt', 'Prøv igjen');
+    } else {
+      fetchReplies();
+    }
+  }
+
   async function reportReply(replyId) {
     const { error } = await supabase
       .from('community_reports')
@@ -115,6 +131,10 @@ export default function ThreadScreen({ route, navigation }) {
     return `Svarer som ${username}`;
   }
 
+  function toggleExpanded(id) {
+    setExpandedReplies(prev => ({ ...prev, [id]: !prev[id] }));
+  }
+
   const threadAuthor = thread.is_anonymous
     ? 'Anonym'
     : (thread.profiles?.username || 'Anonym');
@@ -122,6 +142,9 @@ export default function ThreadScreen({ route, navigation }) {
   const renderReply = ({ item }) => {
     const isPending = item.status === 'pending';
     const displayName = getDisplayName(item);
+    const isOwn = user && item.user_id === user.id;
+    const isLong = item.content.length > PREVIEW_LENGTH;
+    const isExpanded = expandedReplies[item.id];
 
     return (
       <View style={styles.replyCard}>
@@ -137,17 +160,31 @@ export default function ThreadScreen({ route, navigation }) {
               <Text style={styles.timeText}>{formatTime(item.created_at)}</Text>
             </View>
           </View>
+
           {!isPending && (
-            <TouchableOpacity onPress={() => Alert.alert(
-              'Rapporter svar',
-              'Vil du rapportere dette svaret?',
-              [
-                { text: 'Avbryt', style: 'cancel' },
-                { text: 'Rapporter', style: 'destructive', onPress: () => reportReply(item.id) }
-              ]
-            )}>
-              <Text style={styles.reportText}>Rapporter</Text>
-            </TouchableOpacity>
+            isOwn ? (
+              <TouchableOpacity onPress={() => Alert.alert(
+                'Slette svaret?',
+                'Dette kan ikke angres.',
+                [
+                  { text: 'Avbryt', style: 'cancel' },
+                  { text: 'Slett', style: 'destructive', onPress: () => deleteReply(item.id) }
+                ]
+              )}>
+                <Text style={styles.deleteText}>Slett</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity onPress={() => Alert.alert(
+                'Rapporter svar',
+                'Vil du rapportere dette svaret?',
+                [
+                  { text: 'Avbryt', style: 'cancel' },
+                  { text: 'Rapporter', style: 'destructive', onPress: () => reportReply(item.id) }
+                ]
+              )}>
+                <Text style={styles.reportText}>Rapporter</Text>
+              </TouchableOpacity>
+            )
           )}
         </View>
 
@@ -156,7 +193,20 @@ export default function ThreadScreen({ route, navigation }) {
             <Text style={styles.pendingText}>Under vurdering</Text>
           </View>
         ) : (
-          <Text style={styles.replyContent}>{item.content}</Text>
+          <>
+            <Text style={styles.replyContent}>
+              {isLong && !isExpanded
+                ? item.content.slice(0, PREVIEW_LENGTH).trimEnd() + '...'
+                : item.content}
+            </Text>
+            {isLong && (
+              <TouchableOpacity onPress={() => toggleExpanded(item.id)} style={styles.lesmerBtn}>
+                <Text style={styles.lesmerText}>
+                  {isExpanded ? 'Vis mindre' : 'Les mer'}
+                </Text>
+              </TouchableOpacity>
+            )}
+          </>
         )}
       </View>
     );
@@ -268,8 +318,11 @@ const styles = StyleSheet.create({
     alignItems: 'center', marginBottom: 8,
   },
   replyContent: { fontSize: 14, color: C.dark, lineHeight: 21 },
+  lesmerBtn: { marginTop: 4 },
+  lesmerText: { fontSize: 13, color: C.primary, fontWeight: '600' },
   pendingBox: { backgroundColor: C.border, borderRadius: 8, padding: 10 },
   pendingText: { fontSize: 13, color: C.light, fontStyle: 'italic', textAlign: 'center' },
+  deleteText: { fontSize: 11, color: '#d96b6b', fontWeight: '600' },
   reportText: { fontSize: 11, color: C.light },
   inputArea: {
     backgroundColor: C.bg, borderTopWidth: 1, borderTopColor: C.border,
